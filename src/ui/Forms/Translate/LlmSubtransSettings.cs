@@ -1,10 +1,9 @@
-using Nikse.SubtitleEdit.Core.Settings;
 using System;
 using System.IO;
 using System.Windows.Forms;
-using Nikse.SubtitleEdit.Core;
+using Nikse.SubtitleEdit.Core.Common;
 
-namespace Nikse.SubtitleEdit.UI.Forms.Translate
+namespace Nikse.SubtitleEdit.Forms.Translate
 {
     public partial class LlmSubtransSettings : Form
     {
@@ -12,7 +11,7 @@ namespace Nikse.SubtitleEdit.UI.Forms.Translate
         {
             InitializeComponent();
 
-            var ts = Configuration.Settings.Tools;
+            var ts = Nikse.SubtitleEdit.Core.Common.Configuration.Settings.Tools;
             textBoxPythonPath.Text = ts.LlmSubtransPythonPath;
             textBoxScriptPath.Text = ts.LlmSubtransScriptPath;
             textBoxUrl.Text = ts.LlmSubtransUrl;
@@ -44,7 +43,7 @@ namespace Nikse.SubtitleEdit.UI.Forms.Translate
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            var ts = Configuration.Settings.Tools;
+            var ts = Nikse.SubtitleEdit.Core.Common.Configuration.Settings.Tools;
             ts.LlmSubtransPythonPath = textBoxPythonPath.Text;
             ts.LlmSubtransScriptPath = textBoxScriptPath.Text;
             ts.LlmSubtransUrl = textBoxUrl.Text;

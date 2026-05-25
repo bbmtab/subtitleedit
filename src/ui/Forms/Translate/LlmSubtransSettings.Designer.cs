@@ -1,4 +1,4 @@
-namespace Nikse.SubtitleEdit.UI.Forms.Translate
+namespace Nikse.SubtitleEdit.Forms.Translate
 {
     partial class LlmSubtransSettings
     {

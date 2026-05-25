@@ -1686,7 +1686,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         {
             if (_autoTranslator.GetType() == typeof(LlmSubTrans))
             {
-                using (var form = new UI.Forms.Translate.LlmSubtransSettings())
+                using (var form = new LlmSubtransSettings())
                 {
                     if (form.ShowDialog(this) == DialogResult.OK)
                     {
