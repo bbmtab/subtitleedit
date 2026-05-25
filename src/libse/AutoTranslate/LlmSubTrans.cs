@@ -97,29 +97,47 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 foreach (var line in lines)
                 {
                     var searchLine = line.Trim();
-                    if (string.IsNullOrEmpty(searchLine)) continue;
+                    if (string.IsNullOrEmpty(searchLine))
+                    {
+                        translatedLines.Add(string.Empty);
+                        continue;
+                    }
 
                     var index = -1;
                     var normalizedSearch = NormalizeForMatch(searchLine);
 
-                    // 1. Try to find the match starting from current index
-                    int lookAhead = 100;
-                    int startSearch = Math.Max(0, _currentBatchIndex - 5);
-                    int endSearch = Math.Min(_originalSubtitle.Paragraphs.Count, _currentBatchIndex + lookAhead);
-
-                    for (int i = startSearch; i < endSearch; i++)
+                    // 1. First, check if the current pointer matches (most likely in sequential SE run)
+                    if (_currentBatchIndex < _originalSubtitle.Paragraphs.Count)
                     {
-                        var pText = _originalSubtitle.Paragraphs[i].Text;
+                        var pText = _originalSubtitle.Paragraphs[_currentBatchIndex].Text;
                         if (pText.Trim() == searchLine || 
                             formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
                             NormalizeForMatch(pText) == normalizedSearch)
                         {
-                            index = i;
-                            break;
+                            index = _currentBatchIndex;
                         }
                     }
 
-                    // 2. Global search if not found nearby
+                    // 2. If not, look ahead a bit
+                    if (index == -1)
+                    {
+                        int lookAhead = 20;
+                        int startSearch = _currentBatchIndex;
+                        int endSearch = Math.Min(_originalSubtitle.Paragraphs.Count, _currentBatchIndex + lookAhead);
+                        for (int i = startSearch; i < endSearch; i++)
+                        {
+                            var pText = _originalSubtitle.Paragraphs[i].Text;
+                            if (pText.Trim() == searchLine || 
+                                formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
+                                NormalizeForMatch(pText) == normalizedSearch)
+                            {
+                                index = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // 3. If still not found, search globally
                     if (index == -1)
                     {
                         for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
@@ -135,10 +153,12 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         }
                     }
 
-                    // 3. Fallback to index if it's a perfect sequential match
+                    // 4. LAST RESORT: If we have a cached translation and we are in a batch run,
+                    // just take the next line in the cache. SE calls this sequentially.
                     if (index == -1 && _currentBatchIndex < _cachedSubtitle.Paragraphs.Count)
                     {
                         index = _currentBatchIndex;
+                        try { File.AppendAllText(logFile, $"\nMATCH WARNING: Using index fallback for '{searchLine}' -> Index {index}\n"); } catch { }
                     }
 
                     if (index >= 0 && index < _cachedSubtitle.Paragraphs.Count)
@@ -148,8 +168,9 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     }
                     else
                     {
-                        translatedLines.Add(line); // Return original if all else fails
-                        try { File.AppendAllText(logFile, $"\nMATCH FAIL: Could not find match for '{searchLine}' (Norm: '{normalizedSearch}')\n"); } catch { }
+                        // Final fallback - should not happen in normal batch use
+                        translatedLines.Add("[Match failed: " + searchLine.Substring(0, Math.Min(10, searchLine.Length)) + "]");
+                        try { File.AppendAllText(logFile, $"\nMATCH FAIL: Absolutely no match for '{searchLine}' (Pointer: {_currentBatchIndex})\n"); } catch { }
                     }
                 }
 
