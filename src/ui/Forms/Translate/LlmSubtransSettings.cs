@@ -99,6 +99,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             ts.LlmSubtransIncludeOriginal = checkBoxIncludeOriginal.Checked;
             ts.LlmSubtransAddRtlMarkers = checkBoxAddRtlMarkers.Checked;
 
+            Nikse.SubtitleEdit.Core.Common.Configuration.Settings.Save();
             DialogResult = DialogResult.OK;
         }
 

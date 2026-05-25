@@ -1410,6 +1410,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private void buttonOK_Click(object sender, EventArgs e)
         {
             SaveSettings(GetCurrentEngine().GetType());
+            Configuration.Settings.Save();
             var isEmpty = TranslatedSubtitle == null || TranslatedSubtitle.Paragraphs.All(p => string.IsNullOrEmpty(p.Text));
             DialogResult = isEmpty ? DialogResult.Cancel : DialogResult.OK;
         }
