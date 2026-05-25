@@ -268,7 +268,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
                         _cachedSubtitle = new Subtitle();
-                        srt.LoadSubtitle(_cachedSubtitle, null, tempOutput, true);
+                        var linesFromFile = File.ReadAllLines(tempOutput, Encoding.UTF8).ToList();
+                        srt.LoadSubtitle(_cachedSubtitle, linesFromFile, tempOutput);
                         
                         var formatting = new Formatting();
                         for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
