@@ -83,21 +83,34 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                 foreach (var line in lines)
                 {
-                    // Find the best match starting from current index (likely next)
+                    var searchLine = line.Trim();
+                    if (string.IsNullOrEmpty(searchLine)) continue;
+
                     var index = -1;
-                    
-                    // First check the likely current index
-                    if (_currentBatchIndex < _originalSubtitle.Paragraphs.Count && 
-                        _originalSubtitle.Paragraphs[_currentBatchIndex].Text.Trim() == line.Trim())
+                    var formatting = new Formatting();
+
+                    // Search for the paragraph that matches the unformatted text
+                    // We check around the current index first for performance
+                    int lookAhead = 50;
+                    int startSearch = Math.Max(0, _currentBatchIndex - 5);
+                    int endSearch = Math.Min(_originalSubtitle.Paragraphs.Count, _currentBatchIndex + lookAhead);
+
+                    for (int i = startSearch; i < endSearch; i++)
                     {
-                        index = _currentBatchIndex;
+                        var originalUnformatted = formatting.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, sourceLanguageCode);
+                        if (originalUnformatted.Trim() == searchLine)
+                        {
+                            index = i;
+                            break;
+                        }
                     }
-                    else
+
+                    if (index == -1) // Global search if not found nearby
                     {
-                        // Search globally if out of sync
                         for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
                         {
-                            if (_originalSubtitle.Paragraphs[i].Text.Trim() == line.Trim())
+                            var originalUnformatted = formatting.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, sourceLanguageCode);
+                            if (originalUnformatted.Trim() == searchLine)
                             {
                                 index = i;
                                 break;
@@ -112,7 +125,16 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     }
                     else
                     {
-                        translatedLines.Add("[Source line not found]");
+                        // Fallback: If we can't match by text, try matching by index if it's a simple sequential call
+                        if (_currentBatchIndex < _cachedSubtitle.Paragraphs.Count)
+                        {
+                            translatedLines.Add(_cachedSubtitle.Paragraphs[_currentBatchIndex].Text);
+                            _currentBatchIndex++;
+                        }
+                        else
+                        {
+                            translatedLines.Add("[Source line not found: " + searchLine.Substring(0, Math.Min(20, searchLine.Length)) + "]");
+                        }
                     }
                 }
 
