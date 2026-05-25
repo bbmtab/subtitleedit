@@ -132,8 +132,9 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 return;
             }
 
-            var tempInput = Path.Combine(Path.GetTempPath(), "llm_subtrans_in.srt");
-            var tempOutput = Path.Combine(Path.GetTempPath(), "llm_subtrans_out.srt");
+            var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
+            var tempInput = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
+            var tempOutput = Path.Combine(Path.GetTempPath(), $"se_llm_out_{uniqueId}.srt");
             var logFile = Path.Combine(!string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath(), "llm_subtrans_log.txt");
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
