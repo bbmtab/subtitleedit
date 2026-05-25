@@ -2,6 +2,7 @@ using Nikse.SubtitleEdit.Core.Settings;
 using System;
 using System.IO;
 using System.Windows.Forms;
+using Nikse.SubtitleEdit.Core;
 
 namespace Nikse.SubtitleEdit.UI.Forms.Translate
 {
