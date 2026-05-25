@@ -28,6 +28,9 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         private readonly Subtitle _originalSubtitle;
         public string FileName { get; set; }
 
+        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private int _currentBatchIndex = 0;
+
         public LlmSubTrans()
         {
         }
@@ -46,6 +49,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         public void Initialize()
         {
             _cachedSubtitle = null;
+            _currentBatchIndex = 0;
         }
 
         public List<TranslationPair> GetSupportedSourceLanguages()
@@ -60,54 +64,71 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
         public async Task<string> Translate(string text, string sourceLanguageCode, string targetLanguageCode, CancellationToken cancellationToken)
         {
-            if (_cachedSubtitle == null || _lastSourceLanguage != sourceLanguageCode || _lastTargetLanguage != targetLanguageCode)
+            await _semaphore.WaitAsync(cancellationToken);
+            try
             {
-                await TranslateWholeSubtitle(sourceLanguageCode, targetLanguageCode, cancellationToken);
-            }
-
-            if (_cachedSubtitle == null)
-            {
-                return "Error: " + (Error ?? "Translation failed or not started.");
-            }
-
-            var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            var translatedLines = new List<string>();
-
-            foreach (var line in lines)
-            {
-                var p = FindParagraphByText(_originalSubtitle, line.Trim());
-                if (p != null)
+                if (_cachedSubtitle == null || _lastSourceLanguage != sourceLanguageCode || _lastTargetLanguage != targetLanguageCode)
                 {
-                    var index = _originalSubtitle.Paragraphs.IndexOf(p);
-                    if (index >= 0 && index < _cachedSubtitle.Paragraphs.Count)
+                    await TranslateWholeSubtitle(sourceLanguageCode, targetLanguageCode, cancellationToken);
+                }
+
+                if (_cachedSubtitle == null)
+                {
+                    return "Error: " + (Error ?? "Translation failed.");
+                }
+
+                // Split input text by newline (SE might send merged lines)
+                var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                var translatedLines = new List<string>();
+
+                foreach (var line in lines)
+                {
+                    // Find the best match starting from current index (likely next)
+                    var index = -1;
+                    
+                    // First check the likely current index
+                    if (_currentBatchIndex < _originalSubtitle.Paragraphs.Count && 
+                        _originalSubtitle.Paragraphs[_currentBatchIndex].Text.Trim() == line.Trim())
                     {
-                        translatedLines.Add(_cachedSubtitle.Paragraphs[index].Text);
+                        index = _currentBatchIndex;
                     }
                     else
                     {
-                        translatedLines.Add("[Missing Index]");
+                        // Search globally if out of sync
+                        for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
+                        {
+                            if (_originalSubtitle.Paragraphs[i].Text.Trim() == line.Trim())
+                            {
+                                index = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (index >= 0 && index < _cachedSubtitle.Paragraphs.Count)
+                    {
+                        translatedLines.Add(_cachedSubtitle.Paragraphs[index].Text);
+                        _currentBatchIndex = index + 1;
+                    }
+                    else
+                    {
+                        translatedLines.Add("[Source line not found]");
                     }
                 }
-                else
-                {
-                    translatedLines.Add("[Line not found: " + line + "]");
-                }
+
+                return string.Join(Environment.NewLine, translatedLines);
             }
-
-            return string.Join(Environment.NewLine, translatedLines);
-        }
-
-        private Paragraph FindParagraphByText(Subtitle subtitle, string text)
-        {
-            if (subtitle == null) return null;
-            return subtitle.Paragraphs.FirstOrDefault(p => p.Text.Trim() == text);
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         private async Task TranslateWholeSubtitle(string sourceLanguageCode, string targetLanguageCode, CancellationToken cancellationToken)
         {
             if (_originalSubtitle == null)
             {
-                Error = "Original subtitle not available for batch translation.";
+                Error = "Subtitle data not available.";
                 return;
             }
 
@@ -124,27 +145,24 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var scriptPath = Configuration.Settings.Tools.LlmSubtransScriptPath;
 
             if (string.IsNullOrEmpty(pythonPath)) pythonPath = "python.exe";
-
             if (!File.Exists(scriptPath))
             {
-                Error = "Script not found at " + scriptPath + ". Please check settings.";
+                Error = "Script not found. Check settings.";
                 return;
             }
 
-            var subtitleFolder = string.Empty;
-            if (!string.IsNullOrEmpty(FileName))
-            {
-                subtitleFolder = Path.GetDirectoryName(FileName);
-            }
-
+            // Fix URL and Endpoint joining (avoid double slashes)
+            var baseUrl = Configuration.Settings.Tools.LlmSubtransUrl?.TrimEnd('/');
+            var endpoint = Configuration.Settings.Tools.LlmSubtransEndpoint?.TrimStart('/');
+            
             var args = new StringBuilder();
             args.Append($"\"{scriptPath}\" ");
             args.Append($"\"{tempInput}\" ");
             if (Configuration.Settings.Tools.LlmSubtransProject) args.Append("--project ");
             args.Append($"-l \"{targetLanguageCode}\" ");
             args.Append($"-o \"{tempOutput}\" ");
-            args.Append($"-s \"{Configuration.Settings.Tools.LlmSubtransUrl}\" ");
-            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransEndpoint)) args.Append($"-e \"{Configuration.Settings.Tools.LlmSubtransEndpoint}\" ");
+            if (!string.IsNullOrEmpty(baseUrl)) args.Append($"-s \"{baseUrl}\" ");
+            if (!string.IsNullOrEmpty(endpoint)) args.Append($"-e \"/{endpoint}\" ");
             args.Append($"-k \"{Configuration.Settings.Tools.LlmSubtransApiKey}\" ");
             args.Append($"-m \"{Configuration.Settings.Tools.LlmSubtransModel}\" ");
             args.Append($"--temperature \"{Configuration.Settings.Tools.LlmSubtransTemperature.ToString(System.Globalization.CultureInfo.InvariantCulture)}\" ");
@@ -167,6 +185,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
                 args.Append($"--instructionfile \"{Configuration.Settings.Tools.LlmSubtransInstructionFile}\" ");
 
+            var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : string.Empty;
             var namesFile = Configuration.Settings.Tools.LlmSubtransNamesFile;
             if (string.IsNullOrEmpty(namesFile) && !string.IsNullOrEmpty(subtitleFolder))
             {
@@ -183,21 +202,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             }
             if (!string.IsNullOrEmpty(termFile)) args.Append($"--terminology-file \"{termFile}\" ");
 
-            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransSubstitution))
-            {
-                foreach (var sub in Configuration.Settings.Tools.LlmSubtransSubstitution.Split(';'))
-                {
-                    if (!string.IsNullOrWhiteSpace(sub))
-                        args.Append($"--substitution \"{sub.Trim()}\" ");
-                }
-            }
-
-            // Set working directory to project root (up from scripts folder)
             var workingDir = Path.GetDirectoryName(scriptPath);
-            if (workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase))
-            {
-                workingDir = Path.GetDirectoryName(workingDir);
-            }
+            if (workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase)) workingDir = Path.GetDirectoryName(workingDir);
 
             var processStartInfo = new ProcessStartInfo
             {
@@ -213,7 +219,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var log = new StringBuilder();
             log.AppendLine("--- LLM Subtrans Log ---");
             log.AppendLine("Time: " + DateTime.Now.ToString());
-            log.AppendLine("Working Dir: " + workingDir);
             log.AppendLine("Command: " + pythonPath + " " + args);
 
             try
@@ -221,16 +226,12 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 using (var process = new Process())
                 {
                     process.StartInfo = processStartInfo;
-                    var stderr = new StringBuilder();
-                    var stdout = new StringBuilder();
-                    process.ErrorDataReceived += (s, e) => { if (e.Data != null) { stderr.AppendLine(e.Data); log.AppendLine("ERR: " + e.Data); } };
-                    process.OutputDataReceived += (s, e) => { if (e.Data != null) { stdout.AppendLine(e.Data); log.AppendLine("OUT: " + e.Data); } };
+                    process.ErrorDataReceived += (s, e) => { if (e.Data != null) log.AppendLine("ERR: " + e.Data); };
+                    process.OutputDataReceived += (s, e) => { if (e.Data != null) log.AppendLine("OUT: " + e.Data); };
 
                     if (!process.Start())
                     {
-                        Error = "Failed to start process: " + pythonPath;
-                        log.AppendLine(Error);
-                        File.WriteAllText(logFile, log.ToString());
+                        Error = "Failed to start Python.";
                         return;
                     }
 
@@ -238,40 +239,26 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     process.BeginOutputReadLine();
 
                     await Task.Run(() => process.WaitForExit(), cancellationToken);
-
                     log.AppendLine("Exit Code: " + process.ExitCode);
                     File.WriteAllText(logFile, log.ToString());
 
-                    if (process.ExitCode != 0 || !File.Exists(tempOutput))
+                    if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
-                        var msg = new StringBuilder();
-                        if (process.ExitCode != 0) msg.AppendLine($"Python exited with code {process.ExitCode}");
-                        if (!File.Exists(tempOutput)) 
-                        {
-                            msg.AppendLine("Output file not generated.");
-                            // Try to look for .subtrans if in project mode
-                            var projFile = Path.ChangeExtension(tempInput, ".subtrans");
-                            if (File.Exists(projFile)) msg.AppendLine("Project file (.subtrans) exists but no SRT yet. Script might be paused or incomplete.");
-                        }
-                        if (stderr.Length > 0) msg.AppendLine("Error: " + stderr.ToString());
-                        Error = msg.ToString();
-                        return;
+                        _cachedSubtitle = new Subtitle();
+                        srt.LoadSubtitle(_cachedSubtitle, null, tempOutput);
+                        _lastSourceLanguage = sourceLanguageCode;
+                        _lastTargetLanguage = targetLanguageCode;
+                        _currentBatchIndex = 0;
                     }
-                }
-
-                if (File.Exists(tempOutput))
-                {
-                    _cachedSubtitle = new Subtitle();
-                    srt.LoadSubtitle(_cachedSubtitle, null, tempOutput);
-                    _lastSourceLanguage = sourceLanguageCode;
-                    _lastTargetLanguage = targetLanguageCode;
+                    else
+                    {
+                        Error = "Python script failed. See log: " + logFile;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Error = "Exception: " + ex.Message + "\n" + ex.StackTrace;
-                log.AppendLine(Error);
-                File.WriteAllText(logFile, log.ToString());
+                Error = ex.Message;
             }
         }
     }
