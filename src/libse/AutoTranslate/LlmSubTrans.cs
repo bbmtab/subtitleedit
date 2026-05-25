@@ -62,6 +62,18 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             return ChatGptTranslate.ListLanguages();
         }
 
+        private string NormalizeForMatch(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            var sb = new StringBuilder();
+            foreach (var c in text)
+            {
+                if (char.IsLetterOrDigit(c))
+                    sb.Append(char.ToLowerInvariant(c));
+            }
+            return sb.ToString();
+        }
+
         public async Task<string> Translate(string text, string sourceLanguageCode, string targetLanguageCode, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken);
@@ -77,9 +89,10 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     return "Error: " + (Error ?? "Translation failed.");
                 }
 
-                // Split input text by newline (SE might send merged lines)
                 var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 var translatedLines = new List<string>();
+                var formatting = new Formatting();
+                var logFile = Path.Combine(!string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath(), "llm_subtrans_log.txt");
 
                 foreach (var line in lines)
                 {
@@ -87,35 +100,45 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     if (string.IsNullOrEmpty(searchLine)) continue;
 
                     var index = -1;
-                    var formatting = new Formatting();
+                    var normalizedSearch = NormalizeForMatch(searchLine);
 
-                    // Search for the paragraph that matches the unformatted text
-                    // We check around the current index first for performance
-                    int lookAhead = 50;
+                    // 1. Try to find the match starting from current index
+                    int lookAhead = 100;
                     int startSearch = Math.Max(0, _currentBatchIndex - 5);
                     int endSearch = Math.Min(_originalSubtitle.Paragraphs.Count, _currentBatchIndex + lookAhead);
 
                     for (int i = startSearch; i < endSearch; i++)
                     {
-                        var originalUnformatted = formatting.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, sourceLanguageCode);
-                        if (originalUnformatted.Trim() == searchLine)
+                        var pText = _originalSubtitle.Paragraphs[i].Text;
+                        if (pText.Trim() == searchLine || 
+                            formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
+                            NormalizeForMatch(pText) == normalizedSearch)
                         {
                             index = i;
                             break;
                         }
                     }
 
-                    if (index == -1) // Global search if not found nearby
+                    // 2. Global search if not found nearby
+                    if (index == -1)
                     {
                         for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
                         {
-                            var originalUnformatted = formatting.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, sourceLanguageCode);
-                            if (originalUnformatted.Trim() == searchLine)
+                            var pText = _originalSubtitle.Paragraphs[i].Text;
+                            if (pText.Trim() == searchLine || 
+                                formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
+                                NormalizeForMatch(pText) == normalizedSearch)
                             {
                                 index = i;
                                 break;
                             }
                         }
+                    }
+
+                    // 3. Fallback to index if it's a perfect sequential match
+                    if (index == -1 && _currentBatchIndex < _cachedSubtitle.Paragraphs.Count)
+                    {
+                        index = _currentBatchIndex;
                     }
 
                     if (index >= 0 && index < _cachedSubtitle.Paragraphs.Count)
@@ -125,16 +148,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     }
                     else
                     {
-                        // Fallback: If we can't match by text, try matching by index if it's a simple sequential call
-                        if (_currentBatchIndex < _cachedSubtitle.Paragraphs.Count)
-                        {
-                            translatedLines.Add(_cachedSubtitle.Paragraphs[_currentBatchIndex].Text);
-                            _currentBatchIndex++;
-                        }
-                        else
-                        {
-                            translatedLines.Add("[Source line not found: " + searchLine.Substring(0, Math.Min(20, searchLine.Length)) + "]");
-                        }
+                        translatedLines.Add(line); // Return original if all else fails
+                        try { File.AppendAllText(logFile, $"\nMATCH FAIL: Could not find match for '{searchLine}' (Norm: '{normalizedSearch}')\n"); } catch { }
                     }
                 }
 
