@@ -113,6 +113,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             var tempInput = Path.Combine(Path.GetTempPath(), "llm_subtrans_in.srt");
             var tempOutput = Path.Combine(Path.GetTempPath(), "llm_subtrans_out.srt");
+            var logFile = Path.Combine(!string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath(), "llm_subtrans_log.txt");
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
 
@@ -122,10 +123,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var pythonPath = Configuration.Settings.Tools.LlmSubtransPythonPath;
             var scriptPath = Configuration.Settings.Tools.LlmSubtransScriptPath;
 
-            if (string.IsNullOrEmpty(pythonPath))
-            {
-                pythonPath = "python.exe"; // Fallback to PATH
-            }
+            if (string.IsNullOrEmpty(pythonPath)) pythonPath = "python.exe";
 
             if (!File.Exists(scriptPath))
             {
@@ -169,7 +167,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
                 args.Append($"--instructionfile \"{Configuration.Settings.Tools.LlmSubtransInstructionFile}\" ");
 
-            // Default names.txt in subtitle folder
             var namesFile = Configuration.Settings.Tools.LlmSubtransNamesFile;
             if (string.IsNullOrEmpty(namesFile) && !string.IsNullOrEmpty(subtitleFolder))
             {
@@ -178,7 +175,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             }
             if (!string.IsNullOrEmpty(namesFile)) args.Append($"--names \"{namesFile}\" ");
 
-            // Default term.txt in subtitle folder
             var termFile = Configuration.Settings.Tools.LlmSubtransTerminologyFile;
             if (string.IsNullOrEmpty(termFile) && !string.IsNullOrEmpty(subtitleFolder))
             {
@@ -196,6 +192,13 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 }
             }
 
+            // Set working directory to project root (up from scripts folder)
+            var workingDir = Path.GetDirectoryName(scriptPath);
+            if (workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase))
+            {
+                workingDir = Path.GetDirectoryName(workingDir);
+            }
+
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = pythonPath,
@@ -204,8 +207,14 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                WorkingDirectory = Path.GetDirectoryName(scriptPath)
+                WorkingDirectory = workingDir
             };
+
+            var log = new StringBuilder();
+            log.AppendLine("--- LLM Subtrans Log ---");
+            log.AppendLine("Time: " + DateTime.Now.ToString());
+            log.AppendLine("Working Dir: " + workingDir);
+            log.AppendLine("Command: " + pythonPath + " " + args);
 
             try
             {
@@ -214,12 +223,14 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     process.StartInfo = processStartInfo;
                     var stderr = new StringBuilder();
                     var stdout = new StringBuilder();
-                    process.ErrorDataReceived += (s, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
-                    process.OutputDataReceived += (s, e) => { if (e.Data != null) stdout.AppendLine(e.Data); };
+                    process.ErrorDataReceived += (s, e) => { if (e.Data != null) { stderr.AppendLine(e.Data); log.AppendLine("ERR: " + e.Data); } };
+                    process.OutputDataReceived += (s, e) => { if (e.Data != null) { stdout.AppendLine(e.Data); log.AppendLine("OUT: " + e.Data); } };
 
                     if (!process.Start())
                     {
                         Error = "Failed to start process: " + pythonPath;
+                        log.AppendLine(Error);
+                        File.WriteAllText(logFile, log.ToString());
                         return;
                     }
 
@@ -228,30 +239,20 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                     await Task.Run(() => process.WaitForExit(), cancellationToken);
 
-                    var log = new StringBuilder();
-                    log.AppendLine("--- LLM Subtrans Log ---");
-                    log.AppendLine("Time: " + DateTime.Now.ToString());
-                    log.AppendLine("Command: " + pythonPath + " " + args);
                     log.AppendLine("Exit Code: " + process.ExitCode);
-                    log.AppendLine("\n--- STDOUT ---");
-                    log.AppendLine(stdout.ToString());
-                    log.AppendLine("\n--- STDERR ---");
-                    log.AppendLine(stderr.ToString());
-                    log.AppendLine("------------------------");
-
-                    try
-                    {
-                        var logDir = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
-                        var logFile = Path.Combine(logDir, "llm_subtrans_log.txt");
-                        File.WriteAllText(logFile, log.ToString());
-                    }
-                    catch { }
+                    File.WriteAllText(logFile, log.ToString());
 
                     if (process.ExitCode != 0 || !File.Exists(tempOutput))
                     {
                         var msg = new StringBuilder();
                         if (process.ExitCode != 0) msg.AppendLine($"Python exited with code {process.ExitCode}");
-                        if (!File.Exists(tempOutput)) msg.AppendLine("Output file not generated.");
+                        if (!File.Exists(tempOutput)) 
+                        {
+                            msg.AppendLine("Output file not generated.");
+                            // Try to look for .subtrans if in project mode
+                            var projFile = Path.ChangeExtension(tempInput, ".subtrans");
+                            if (File.Exists(projFile)) msg.AppendLine("Project file (.subtrans) exists but no SRT yet. Script might be paused or incomplete.");
+                        }
                         if (stderr.Length > 0) msg.AppendLine("Error: " + stderr.ToString());
                         Error = msg.ToString();
                         return;
@@ -269,6 +270,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             catch (Exception ex)
             {
                 Error = "Exception: " + ex.Message + "\n" + ex.StackTrace;
+                log.AppendLine(Error);
+                File.WriteAllText(logFile, log.ToString());
             }
         }
     }
