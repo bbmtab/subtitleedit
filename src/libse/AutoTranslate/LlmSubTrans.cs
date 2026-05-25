@@ -228,18 +228,31 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                     await Task.Run(() => process.WaitForExit(), cancellationToken);
 
+                    var log = new StringBuilder();
+                    log.AppendLine("--- LLM Subtrans Log ---");
+                    log.AppendLine("Time: " + DateTime.Now.ToString());
+                    log.AppendLine("Command: " + pythonPath + " " + args);
+                    log.AppendLine("Exit Code: " + process.ExitCode);
+                    log.AppendLine("\n--- STDOUT ---");
+                    log.AppendLine(stdout.ToString());
+                    log.AppendLine("\n--- STDERR ---");
+                    log.AppendLine(stderr.ToString());
+                    log.AppendLine("------------------------");
+
+                    try
+                    {
+                        var logDir = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
+                        var logFile = Path.Combine(logDir, "llm_subtrans_log.txt");
+                        File.WriteAllText(logFile, log.ToString());
+                    }
+                    catch { }
+
                     if (process.ExitCode != 0 || !File.Exists(tempOutput))
                     {
                         var msg = new StringBuilder();
                         if (process.ExitCode != 0) msg.AppendLine($"Python exited with code {process.ExitCode}");
                         if (!File.Exists(tempOutput)) msg.AppendLine("Output file not generated.");
-                        
-                        if (stderr.Length > 0) msg.AppendLine("Error Log:\n" + stderr.ToString());
-                        if (stdout.Length > 0) msg.AppendLine("Output Log:\n" + stdout.ToString());
-                        
-                        msg.AppendLine("\nCommand run:");
-                        msg.AppendLine($"{pythonPath} {args}");
-
+                        if (stderr.Length > 0) msg.AppendLine("Error: " + stderr.ToString());
                         Error = msg.ToString();
                         return;
                     }
