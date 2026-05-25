@@ -21,6 +21,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.labelScriptPath = new System.Windows.Forms.Label();
             this.textBoxScriptPath = new System.Windows.Forms.TextBox();
             this.buttonBrowseScript = new System.Windows.Forms.Button();
+            this.buttonBrowseFolder = new System.Windows.Forms.Button();
             this.labelUrl = new System.Windows.Forms.Label();
             this.textBoxUrl = new System.Windows.Forms.TextBox();
             this.labelApiKey = new System.Windows.Forms.Label();
@@ -140,6 +141,16 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.buttonBrowseScript.Text = "Browse...";
             this.buttonBrowseScript.UseVisualStyleBackColor = true;
             this.buttonBrowseScript.Click += new System.EventHandler(this.buttonBrowseScript_Click);
+            // 
+            // buttonBrowseFolder
+            // 
+            this.buttonBrowseFolder.Location = new System.Drawing.Point(9, 110);
+            this.buttonBrowseFolder.Name = "buttonBrowseFolder";
+            this.buttonBrowseFolder.Size = new System.Drawing.Size(150, 23);
+            this.buttonBrowseFolder.TabIndex = 6;
+            this.buttonBrowseFolder.Text = "Browse llm-subtrans folder...";
+            this.buttonBrowseFolder.UseVisualStyleBackColor = true;
+            this.buttonBrowseFolder.Click += new System.EventHandler(this.buttonBrowseFolder_Click);
             // 
             // labelUrl
             // 
@@ -574,6 +585,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPagePaths.Controls.Add(this.labelScriptPath);
             this.tabPagePaths.Controls.Add(this.textBoxScriptPath);
             this.tabPagePaths.Controls.Add(this.buttonBrowseScript);
+            this.tabPagePaths.Controls.Add(this.buttonBrowseFolder);
             this.tabPagePaths.Location = new System.Drawing.Point(4, 22);
             this.tabPagePaths.Name = "tabPagePaths";
             this.tabPagePaths.Padding = new System.Windows.Forms.Padding(3);
@@ -753,6 +765,4 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private System.Windows.Forms.TabPage tabPageFiles;
         private System.Windows.Forms.Button buttonBrowseFolder;
     }
-}
-
 }

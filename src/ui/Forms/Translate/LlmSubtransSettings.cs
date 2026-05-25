@@ -39,6 +39,33 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             checkBoxAuto.Checked = ts.LlmSubtransAuto;
             checkBoxIncludeOriginal.Checked = ts.LlmSubtransIncludeOriginal;
             checkBoxAddRtlMarkers.Checked = ts.LlmSubtransAddRtlMarkers;
+
+            if (string.IsNullOrEmpty(textBoxPythonPath.Text))
+            {
+                AutoDetectPython();
+            }
+        }
+
+        private void AutoDetectPython()
+        {
+            string[] commonPaths = {
+                @"C:\Python312\python.exe",
+                @"C:\Python311\python.exe",
+                @"C:\Python310\python.exe",
+                @"C:\Program Files\Python312\python.exe",
+                @"C:\Program Files\Python311\python.exe",
+                @"C:\Users\" + Environment.UserName + @"\AppData\Local\Programs\Python\Python312\python.exe",
+                @"C:\Users\" + Environment.UserName + @"\AppData\Local\Programs\Python\Python311\python.exe",
+            };
+
+            foreach (var path in commonPaths)
+            {
+                if (File.Exists(path))
+                {
+                    textBoxPythonPath.Text = path;
+                    break;
+                }
+            }
         }
 
         private void buttonOK_Click(object sender, EventArgs e)
@@ -104,6 +131,23 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             }
         }
 
+        private void buttonBrowseFolder_Click(object sender, EventArgs e)
+        {
+            using (var folderBrowser = new FolderBrowserDialog())
+            {
+                folderBrowser.Description = "Select llm-subtrans clone folder";
+                if (folderBrowser.ShowDialog() == DialogResult.OK)
+                {
+                    string folder = folderBrowser.SelectedPath;
+                    string script = Path.Combine(folder, "scripts", "llm-subtrans.py");
+                    string python = Path.Combine(folder, "envsubtrans", "Scripts", "python.exe");
+
+                    if (File.Exists(script)) textBoxScriptPath.Text = script;
+                    if (File.Exists(python)) textBoxPythonPath.Text = python;
+                }
+            }
+        }
+
         private void buttonBrowseInstruction_Click(object sender, EventArgs e)
         {
             using (var openFileDialog = new OpenFileDialog())
@@ -136,51 +180,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     textBoxTerminologyFile.Text = openFileDialog.FileName;
-                }
-            }
-        private void buttonBrowseFolder_Click(object sender, EventArgs e)
-        {
-            using (var folderBrowserDialog = new FolderBrowserDialog())
-            {
-                folderBrowserDialog.Description = "Select the llm-subtrans project folder";
-                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
-                {
-                    string folder = folderBrowserDialog.SelectedPath;
-                    
-                    // Look for script
-                    string scriptPath = Path.Combine(folder, "scripts", "llm-subtrans.py");
-                    if (File.Exists(scriptPath))
-                    {
-                        textBoxScriptPath.Text = scriptPath;
-                    }
-                    else
-                    {
-                        scriptPath = Path.Combine(folder, "llm-subtrans.py");
-                        if (File.Exists(scriptPath))
-                        {
-                            textBoxScriptPath.Text = scriptPath;
-                        }
-                    }
-
-                    // Look for python in venv
-                    string pythonPath = Path.Combine(folder, "envsubtrans", "Scripts", "python.exe");
-                    if (File.Exists(pythonPath))
-                    {
-                        textBoxPythonPath.Text = pythonPath;
-                    }
-                    else
-                    {
-                        pythonPath = Path.Combine(folder, "venv", "Scripts", "python.exe");
-                        if (File.Exists(pythonPath))
-                        {
-                            textBoxPythonPath.Text = pythonPath;
-                        }
-                    }
-
-                    if (!File.Exists(textBoxPythonPath.Text))
-                    {
-                        MessageBox.Show("Python not found in folder. Please ensure you have created a virtual environment (envsubtrans or venv).", "Python Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
                 }
             }
         }
