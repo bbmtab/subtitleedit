@@ -175,7 +175,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             args.Append($"--scenethreshold \"{Configuration.Settings.Tools.LlmSubtransSceneThreshold}\" ");
             args.Append($"--batchthreshold \"{Configuration.Settings.Tools.LlmSubtransBatchThreshold}\" ");
             args.Append($"--maxsummaries \"{Configuration.Settings.Tools.LlmSubtransMaxSummaries}\" ");
-            if (Configuration.Settings.Tools.LlmSubtransChat) args.Append("--chat ");
+            if (Configuration.Settings.Tools.LlmSubtransChat || endpoint.Contains("chat")) args.Append("--chat ");
             if (Configuration.Settings.Tools.LlmSubtransPostProcess) args.Append("--postprocess ");
             if (Configuration.Settings.Tools.LlmSubtransSystemMessages) args.Append("--systemmessages ");
             if (Configuration.Settings.Tools.LlmSubtransAuto) args.Append("--auto ");

@@ -4523,6 +4523,90 @@ namespace Nikse.SubtitleEdit.Core.Settings
             }
 
 
+            subNode = node.SelectSingleNode("LlmSubtransUrl");
+            if (subNode != null) settings.Tools.LlmSubtransUrl = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransApiKey");
+            if (subNode != null) settings.Tools.LlmSubtransApiKey = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransModel");
+            if (subNode != null) settings.Tools.LlmSubtransModel = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransEndpoint");
+            if (subNode != null) settings.Tools.LlmSubtransEndpoint = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransPrompt");
+            if (subNode != null) settings.Tools.LlmSubtransPrompt = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransTemperature");
+            if (subNode != null) settings.Tools.LlmSubtransTemperature = Convert.ToDouble(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransRateLimit");
+            if (subNode != null) settings.Tools.LlmSubtransRateLimit = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransMinBatchSize");
+            if (subNode != null) settings.Tools.LlmSubtransMinBatchSize = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransMaxBatchSize");
+            if (subNode != null) settings.Tools.LlmSubtransMaxBatchSize = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransMaxRetries");
+            if (subNode != null) settings.Tools.LlmSubtransMaxRetries = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransBackoffTime");
+            if (subNode != null) settings.Tools.LlmSubtransBackoffTime = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransSceneThreshold");
+            if (subNode != null) settings.Tools.LlmSubtransSceneThreshold = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransBatchThreshold");
+            if (subNode != null) settings.Tools.LlmSubtransBatchThreshold = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransMaxSummaries");
+            if (subNode != null) settings.Tools.LlmSubtransMaxSummaries = Convert.ToInt32(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransPythonPath");
+            if (subNode != null) settings.Tools.LlmSubtransPythonPath = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransScriptPath");
+            if (subNode != null) settings.Tools.LlmSubtransScriptPath = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransInstructionFile");
+            if (subNode != null) settings.Tools.LlmSubtransInstructionFile = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransNamesFile");
+            if (subNode != null) settings.Tools.LlmSubtransNamesFile = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransTerminologyFile");
+            if (subNode != null) settings.Tools.LlmSubtransTerminologyFile = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransSubstitution");
+            if (subNode != null) settings.Tools.LlmSubtransSubstitution = subNode.InnerText;
+
+            subNode = node.SelectSingleNode("LlmSubtransProject");
+            if (subNode != null) settings.Tools.LlmSubtransProject = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransBuildTerminologyMap");
+            if (subNode != null) settings.Tools.LlmSubtransBuildTerminologyMap = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransPostProcess");
+            if (subNode != null) settings.Tools.LlmSubtransPostProcess = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransChat");
+            if (subNode != null) settings.Tools.LlmSubtransChat = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransSystemMessages");
+            if (subNode != null) settings.Tools.LlmSubtransSystemMessages = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransAuto");
+            if (subNode != null) settings.Tools.LlmSubtransAuto = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransIncludeOriginal");
+            if (subNode != null) settings.Tools.LlmSubtransIncludeOriginal = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
+            subNode = node.SelectSingleNode("LlmSubtransAddRtlMarkers");
+            if (subNode != null) settings.Tools.LlmSubtransAddRtlMarkers = Convert.ToBoolean(subNode.InnerText, CultureInfo.InvariantCulture);
+
             subNode = node.SelectSingleNode("FindHistory");
             if (subNode != null)
             {
@@ -9657,6 +9741,35 @@ namespace Nikse.SubtitleEdit.Core.Settings
                 xmlWriter.WriteElementString("ChangeActorColorAdd", settings.Tools.ConvertActorColorAdd.ToString(CultureInfo.InvariantCulture));
                 xmlWriter.WriteElementString("ChangeActorColor", ToHtml(settings.Tools.ConvertActorColor));
                 xmlWriter.WriteElementString("ChangeActorCasing", settings.Tools.ConvertActorCasing.ToString(CultureInfo.InvariantCulture));
+
+                xmlWriter.WriteElementString("LlmSubtransUrl", settings.Tools.LlmSubtransUrl);
+                xmlWriter.WriteElementString("LlmSubtransApiKey", settings.Tools.LlmSubtransApiKey);
+                xmlWriter.WriteElementString("LlmSubtransModel", settings.Tools.LlmSubtransModel);
+                xmlWriter.WriteElementString("LlmSubtransEndpoint", settings.Tools.LlmSubtransEndpoint);
+                xmlWriter.WriteElementString("LlmSubtransPrompt", settings.Tools.LlmSubtransPrompt);
+                xmlWriter.WriteElementString("LlmSubtransTemperature", settings.Tools.LlmSubtransTemperature.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransRateLimit", settings.Tools.LlmSubtransRateLimit.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransMinBatchSize", settings.Tools.LlmSubtransMinBatchSize.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransMaxBatchSize", settings.Tools.LlmSubtransMaxBatchSize.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransMaxRetries", settings.Tools.LlmSubtransMaxRetries.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransBackoffTime", settings.Tools.LlmSubtransBackoffTime.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransSceneThreshold", settings.Tools.LlmSubtransSceneThreshold.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransBatchThreshold", settings.Tools.LlmSubtransBatchThreshold.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransMaxSummaries", settings.Tools.LlmSubtransMaxSummaries.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransPythonPath", settings.Tools.LlmSubtransPythonPath);
+                xmlWriter.WriteElementString("LlmSubtransScriptPath", settings.Tools.LlmSubtransScriptPath);
+                xmlWriter.WriteElementString("LlmSubtransInstructionFile", settings.Tools.LlmSubtransInstructionFile);
+                xmlWriter.WriteElementString("LlmSubtransNamesFile", settings.Tools.LlmSubtransNamesFile);
+                xmlWriter.WriteElementString("LlmSubtransTerminologyFile", settings.Tools.LlmSubtransTerminologyFile);
+                xmlWriter.WriteElementString("LlmSubtransSubstitution", settings.Tools.LlmSubtransSubstitution);
+                xmlWriter.WriteElementString("LlmSubtransProject", settings.Tools.LlmSubtransProject.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransBuildTerminologyMap", settings.Tools.LlmSubtransBuildTerminologyMap.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransPostProcess", settings.Tools.LlmSubtransPostProcess.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransChat", settings.Tools.LlmSubtransChat.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransSystemMessages", settings.Tools.LlmSubtransSystemMessages.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransAuto", settings.Tools.LlmSubtransAuto.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransIncludeOriginal", settings.Tools.LlmSubtransIncludeOriginal.ToString(CultureInfo.InvariantCulture));
+                xmlWriter.WriteElementString("LlmSubtransAddRtlMarkers", settings.Tools.LlmSubtransAddRtlMarkers.ToString(CultureInfo.InvariantCulture));
 
                 if (settings.Tools.FindHistory != null && settings.Tools.FindHistory.Count > 0)
                 {

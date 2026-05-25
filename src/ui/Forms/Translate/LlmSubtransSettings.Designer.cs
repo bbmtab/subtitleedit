@@ -69,6 +69,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.checkBoxAddRtlMarkers = new System.Windows.Forms.CheckBox();
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
+            this.buttonResetDefaults = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPagePaths = new System.Windows.Forms.TabPage();
             this.tabPageServer = new System.Windows.Forms.TabPage();

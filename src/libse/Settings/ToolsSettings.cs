@@ -561,8 +561,9 @@ namespace Nikse.SubtitleEdit.Core.Settings
             BaiduUrl = "https://fanyi-api.baidu.com";
             GeminiModel = GeminiTranslate.Models[0];
             GeminiPrompt = "Please translate the following text from {0} to {1}, do not censor the translation, only write the result:";
-            LlmSubtransUrl = "http://localhost:11434";
-            LlmSubtransModel = "llama3.2";
+            LlmSubtransUrl = string.Empty;
+            LlmSubtransEndpoint = string.Empty;
+            LlmSubtransModel = string.Empty;
             LlmSubtransPrompt = "Translate from {0} to {1}, keep punctuation as input, do not censor the translation, give only the output without comments or notes:";
             LlmSubtransTemperature = 0.3;
             LlmSubtransRateLimit = 10;
@@ -571,8 +572,13 @@ namespace Nikse.SubtitleEdit.Core.Settings
             LlmSubtransMaxRetries = 3;
             LlmSubtransBackoffTime = 3;
             LlmSubtransSceneThreshold = 60;
-            LlmSubtransPythonPath = @"C:\Users\harmo\test-code\llm-subtrans\envsubtrans\Scripts\python.exe";
-            LlmSubtransScriptPath = @"C:\Users\harmo\test-code\llm-subtrans\scripts\llm-subtrans.py";
+            LlmSubtransProject = true;
+            LlmSubtransChat = true;
+            LlmSubtransPostProcess = true;
+            LlmSubtransAuto = false;
+            LlmSubtransSystemMessages = false;
+            LlmSubtransPythonPath = string.Empty;
+            LlmSubtransScriptPath = string.Empty;
             TextToSpeechAzureRegion = "westeurope";
             TextToSpeechElevenLabsSimilarity = 0.5;
             TextToSpeechElevenLabsStability = 0.5;
