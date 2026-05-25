@@ -138,6 +138,51 @@ namespace Nikse.SubtitleEdit.Forms.Translate
                     textBoxTerminologyFile.Text = openFileDialog.FileName;
                 }
             }
+        private void buttonBrowseFolder_Click(object sender, EventArgs e)
+        {
+            using (var folderBrowserDialog = new FolderBrowserDialog())
+            {
+                folderBrowserDialog.Description = "Select the llm-subtrans project folder";
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string folder = folderBrowserDialog.SelectedPath;
+                    
+                    // Look for script
+                    string scriptPath = Path.Combine(folder, "scripts", "llm-subtrans.py");
+                    if (File.Exists(scriptPath))
+                    {
+                        textBoxScriptPath.Text = scriptPath;
+                    }
+                    else
+                    {
+                        scriptPath = Path.Combine(folder, "llm-subtrans.py");
+                        if (File.Exists(scriptPath))
+                        {
+                            textBoxScriptPath.Text = scriptPath;
+                        }
+                    }
+
+                    // Look for python in venv
+                    string pythonPath = Path.Combine(folder, "envsubtrans", "Scripts", "python.exe");
+                    if (File.Exists(pythonPath))
+                    {
+                        textBoxPythonPath.Text = pythonPath;
+                    }
+                    else
+                    {
+                        pythonPath = Path.Combine(folder, "venv", "Scripts", "python.exe");
+                        if (File.Exists(pythonPath))
+                        {
+                            textBoxPythonPath.Text = pythonPath;
+                        }
+                    }
+
+                    if (!File.Exists(textBoxPythonPath.Text))
+                    {
+                        MessageBox.Show("Python not found in folder. Please ensure you have created a virtual environment (envsubtrans or venv).", "Python Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            }
         }
     }
 }

@@ -26,6 +26,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         private string _lastSourceLanguage;
         private string _lastTargetLanguage;
         private readonly Subtitle _originalSubtitle;
+        public string FileName { get; set; }
 
         public LlmSubTrans()
         {
@@ -34,6 +35,12 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         public LlmSubTrans(Subtitle originalSubtitle)
         {
             _originalSubtitle = originalSubtitle;
+        }
+
+        public LlmSubTrans(Subtitle originalSubtitle, string fileName)
+        {
+            _originalSubtitle = originalSubtitle;
+            FileName = fileName;
         }
 
         public void Initialize()
@@ -60,11 +67,9 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             if (_cachedSubtitle == null)
             {
-                return "Error: Translation failed or not started.";
+                return "Error: " + (Error ?? "Translation failed or not started.");
             }
 
-            // Try to find the matching paragraph by text
-            // Note: SE often sends multiple paragraphs joined by newline
             var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
             var translatedLines = new List<string>();
 
@@ -107,26 +112,31 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             }
 
             var tempInput = Path.Combine(Path.GetTempPath(), "llm_subtrans_in.srt");
-            var tempOutput = Path.Combine(Path.GetTempPath(), "llm_subtrans_in." + targetLanguageCode + ".srt");
+            var tempOutput = Path.Combine(Path.GetTempPath(), "llm_subtrans_out.srt");
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
 
             var srt = new SubRip();
-            File.WriteAllText(tempInput, srt.ToText(_originalSubtitle, string.Empty), Encoding.UTF8);
+            File.WriteAllText(tempInput, srt.ToText(_originalSubtitle, string.Empty), new UTF8Encoding(false));
 
             var pythonPath = Configuration.Settings.Tools.LlmSubtransPythonPath;
             var scriptPath = Configuration.Settings.Tools.LlmSubtransScriptPath;
 
-            if (!File.Exists(pythonPath))
+            if (string.IsNullOrEmpty(pythonPath))
             {
-                Error = "Python not found at " + pythonPath;
-                return;
+                pythonPath = "python.exe"; // Fallback to PATH
             }
 
             if (!File.Exists(scriptPath))
             {
-                Error = "Script not found at " + scriptPath;
+                Error = "Script not found at " + scriptPath + ". Please check settings.";
                 return;
+            }
+
+            var subtitleFolder = string.Empty;
+            if (!string.IsNullOrEmpty(FileName))
+            {
+                subtitleFolder = Path.GetDirectoryName(FileName);
             }
 
             var args = new StringBuilder();
@@ -134,6 +144,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             args.Append($"\"{tempInput}\" ");
             if (Configuration.Settings.Tools.LlmSubtransProject) args.Append("--project ");
             args.Append($"-l \"{targetLanguageCode}\" ");
+            args.Append($"-o \"{tempOutput}\" ");
             args.Append($"-s \"{Configuration.Settings.Tools.LlmSubtransUrl}\" ");
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransEndpoint)) args.Append($"-e \"{Configuration.Settings.Tools.LlmSubtransEndpoint}\" ");
             args.Append($"-k \"{Configuration.Settings.Tools.LlmSubtransApiKey}\" ");
@@ -158,11 +169,23 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
                 args.Append($"--instructionfile \"{Configuration.Settings.Tools.LlmSubtransInstructionFile}\" ");
 
-            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransNamesFile))
-                args.Append($"--names \"{Configuration.Settings.Tools.LlmSubtransNamesFile}\" ");
+            // Default names.txt in subtitle folder
+            var namesFile = Configuration.Settings.Tools.LlmSubtransNamesFile;
+            if (string.IsNullOrEmpty(namesFile) && !string.IsNullOrEmpty(subtitleFolder))
+            {
+                var defaultNames = Path.Combine(subtitleFolder, "names.txt");
+                if (File.Exists(defaultNames)) namesFile = defaultNames;
+            }
+            if (!string.IsNullOrEmpty(namesFile)) args.Append($"--names \"{namesFile}\" ");
 
-            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransTerminologyFile))
-                args.Append($"--terminology-file \"{Configuration.Settings.Tools.LlmSubtransTerminologyFile}\" ");
+            // Default term.txt in subtitle folder
+            var termFile = Configuration.Settings.Tools.LlmSubtransTerminologyFile;
+            if (string.IsNullOrEmpty(termFile) && !string.IsNullOrEmpty(subtitleFolder))
+            {
+                var defaultTerm = Path.Combine(subtitleFolder, "term.txt");
+                if (File.Exists(defaultTerm)) termFile = defaultTerm;
+            }
+            if (!string.IsNullOrEmpty(termFile)) args.Append($"--terminology-file \"{termFile}\" ");
 
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransSubstitution))
             {
@@ -188,7 +211,17 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 using (var process = Process.Start(processStartInfo))
                 {
+                    var stderr = new StringBuilder();
+                    process.ErrorDataReceived += (s, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
+                    process.BeginErrorReadLine();
+
                     await Task.Run(() => process.WaitForExit(), cancellationToken);
+
+                    if (process.ExitCode != 0)
+                    {
+                        Error = "Python script exited with code " + process.ExitCode + ": " + stderr.ToString();
+                        return;
+                    }
                 }
 
                 if (File.Exists(tempOutput))
@@ -200,7 +233,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 }
                 else
                 {
-                    Error = "Output file not generated by script.";
+                    Error = "Output file not generated by script. Stderr: " + Error;
                 }
             }
             catch (Exception ex)

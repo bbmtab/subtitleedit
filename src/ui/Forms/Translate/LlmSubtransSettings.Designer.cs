@@ -751,5 +751,8 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private System.Windows.Forms.TabPage tabPageServer;
         private System.Windows.Forms.TabPage tabPageAdvanced;
         private System.Windows.Forms.TabPage tabPageFiles;
+        private System.Windows.Forms.Button buttonBrowseFolder;
     }
+}
+
 }

@@ -36,8 +36,11 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private bool _singleLineMode;
         private CancellationTokenSource _cancellationTokenSource;
 
-        public AutoTranslate(Subtitle subtitle, Subtitle targetLines, string title, Encoding encoding)
+        private readonly string _fileName;
+
+        public AutoTranslate(Subtitle subtitle, Subtitle targetLines, string title, Encoding encoding, string fileName = null)
         {
+            _fileName = fileName;
             UiUtil.PreInitialize(this);
             InitializeComponent();
             UiUtil.FixFonts(this);
@@ -118,7 +121,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         {
             _autoTranslatorEngines = new List<IAutoTranslator>
             {
-                new LlmSubTrans(_subtitle),
+                new LlmSubTrans(_subtitle, _fileName),
             };
 
             nikseComboBoxEngine.Items.Clear();

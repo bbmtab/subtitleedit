@@ -37178,7 +37178,7 @@ namespace Nikse.SubtitleEdit.Forms
                 }
             }
 
-            using (var autoTranslate = new AutoTranslate(sub, target, title, GetCurrentEncoding()))
+            using (var autoTranslate = new AutoTranslate(sub, target, title, GetCurrentEncoding(), _fileName))
             {
                 SaveSubtitleListviewIndices();
 
