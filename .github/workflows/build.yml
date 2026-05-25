@@ -30,11 +30,16 @@ jobs:
     - name: Prepare Artifacts
       run: |
         mkdir artifacts
-        copy src\ui\bin\Release\SubtitleEdit.exe artifacts\
-        copy src\ui\bin\Release\libse.dll artifacts\
-        if (Test-Path src\ui\bin\Release\Nikse.SubtitleEdit.Core.dll) { copy src\ui\bin\Release\Nikse.SubtitleEdit.Core.dll artifacts\ }
-        # Add other necessary DLLs if they exist
-        dir src\ui\bin\Release\*.dll | ForEach-Object { copy $_.FullName artifacts\ }
+        $releaseDir = "src\ui\bin\Release\net48"
+        if (!(Test-Path $releaseDir)) { $releaseDir = "src\ui\bin\Release" }
+        Write-Host "Using release directory: $releaseDir"
+        
+        Get-ChildItem $releaseDir -Recurse -Include *.exe, *.dll | ForEach-Object {
+            Write-Host "Found file: $($_.FullName)"
+            copy $_.FullName artifacts\
+        }
+        
+        dir artifacts
       shell: powershell
 
     - name: Upload Build Artifact
