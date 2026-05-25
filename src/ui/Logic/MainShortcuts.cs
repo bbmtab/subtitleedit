@@ -285,7 +285,6 @@ namespace Nikse.SubtitleEdit.Logic
         public Keys WaveformAudioToTextVosk { get; set; }
         public Keys WaveformAudioToTextWhisper { get; set; }
         public Keys MainTranslateGoogleIt { get; set; }
-        public Keys MainTranslateGoogleIt { get; set; }
         public Keys MainTranslateLlmSubtrans { get; set; }
         public Keys MainCheckFixTimingViaShotChanges { get; set; }
         public Keys MainTranslateGoogleTranslateIt { get; set; }
