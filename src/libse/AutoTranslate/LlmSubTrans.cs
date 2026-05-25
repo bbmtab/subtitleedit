@@ -20,7 +20,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         public string Name => StaticName;
         public string Url => "https://github.com/machinewrapped/llm-subtrans";
         public string Error { get; set; }
-        public int MaxCharacters => 2000;
+        public int MaxCharacters => 5000;
 
         private Subtitle _cachedSubtitle;
         private string _lastSourceLanguage;
