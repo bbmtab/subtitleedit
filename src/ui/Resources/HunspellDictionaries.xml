@@ -1,0 +1,471 @@
+<OpenOfficeDictionaries>
+	<!--
+		Most dictionaries below pull the .aff + .dic files directly from
+		https://github.com/LibreOffice/dictionaries (master branch) - that is the
+		canonical upstream and the URLs are stable. Each <Dictionary> may carry
+		multiple <DownloadLink> entries; every link is fetched and saved by URL
+		basename into the dictionaries folder, so a single dictionary maps to its
+		own set of files (one dictionary per download - no bundling).
+
+		Where LibreOffice does not ship a dictionary (Basque, Irish, Latin, Lower
+		Sorbian, Vietnamese+English, etc.) the original .oxt / .zip URL is kept;
+		those are downloaded and extracted as before.
+	-->
+	<Dictionary>
+		<EnglishName>Afrikaans</EnglishName>
+		<NativeName>Afrikaans</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/af_ZA/af_ZA.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/af_ZA/af_ZA.dic</DownloadLink>
+		<Description>Afrikaans (af_ZA) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Albanian</EnglishName>
+		<NativeName>Shqip</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sq_AL/sq_AL.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sq_AL/sq_AL.dic</DownloadLink>
+		<Description>Albanian (sq_AL) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Arabic</EnglishName>
+		<NativeName>عربي</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ar/ar.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ar/ar.dic</DownloadLink>
+		<Description>Arabic (ar) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Basque</EnglishName>
+		<NativeName>Euskara</NativeName>
+		<DownloadLink>https://extensions.libreoffice.org/assets/downloads/z/xuxeniv-lo4-1-1.oxt</DownloadLink>
+		<Description>Xuxen: Basque spell checking dictionary - v4.0</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Belarusian</EnglishName>
+		<NativeName>Беларуская мова</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/be_BY/be-official.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/be_BY/be-official.dic</DownloadLink>
+		<Description>Belarusian (be-official) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Bosnian</EnglishName>
+		<NativeName>Bosanski</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/bs_BA/bs_BA.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/bs_BA/bs_BA.dic</DownloadLink>
+		<Description>Bosnian (bs_BA) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Breton</EnglishName>
+		<NativeName>Brezhoneg</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/br_FR/br_FR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/br_FR/br_FR.dic</DownloadLink>
+		<Description>Breton (br_FR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Bulgarian</EnglishName>
+		<NativeName>Български</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/bg_BG/bg_BG.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/bg_BG/bg_BG.dic</DownloadLink>
+		<Description>Bulgarian (bg_BG) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Catalan</EnglishName>
+		<NativeName>català</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ca/dictionaries/ca.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ca/dictionaries/ca.dic</DownloadLink>
+		<Description>Catalan (ca) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Croatian</EnglishName>
+		<NativeName>Hrvatski</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/hr_HR/hr_HR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/hr_HR/hr_HR.dic</DownloadLink>
+		<Description>Croatian (hr_HR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Czech</EnglishName>
+		<NativeName>Čeština</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/cs_CZ/cs_CZ.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/cs_CZ/cs_CZ.dic</DownloadLink>
+		<Description>Czech (cs_CZ) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Danish</EnglishName>
+		<NativeName>Dansk</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/da_DK/da_DK.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/da_DK/da_DK.dic</DownloadLink>
+		<Description>Danish (da_DK) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Dutch</EnglishName>
+		<NativeName>Nederlands</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/nl_NL/nl_NL.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/nl_NL/nl_NL.dic</DownloadLink>
+		<Description>Dutch (nl_NL) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>English (Australia)</EnglishName>
+		<NativeName>English (Australia)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_AU.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_AU.dic</DownloadLink>
+		<Description>English Australia (en_AU) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>English (Canada)</EnglishName>
+		<NativeName>English (Canada)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_CA.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_CA.dic</DownloadLink>
+		<Description>English Canada (en_CA) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>English (United Kingdom)</EnglishName>
+		<NativeName>English (United Kingdom)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_GB.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_GB.dic</DownloadLink>
+		<Description>English United Kingdom (en_GB) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>English (United States)</EnglishName>
+		<NativeName>English (United States)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_US.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_US.dic</DownloadLink>
+		<Description>English United States (en_US) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>English (South Africa)</EnglishName>
+		<NativeName>English (South Africa)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_ZA.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/en/en_ZA.dic</DownloadLink>
+		<Description>English South Africa (en_ZA) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Estonian</EnglishName>
+		<NativeName>Eesti keel</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/et_EE/et_EE.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/et_EE/et_EE.dic</DownloadLink>
+		<Description>Estonian (et_EE) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Farsi (Persian)</EnglishName>
+		<NativeName>Persian/Farsi</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/fa_IR/fa-IR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/fa_IR/fa-IR.dic</DownloadLink>
+		<Description>Persian/Farsi (fa-IR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>French</EnglishName>
+		<NativeName>Français</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/fr_FR/fr.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/fr_FR/fr.dic</DownloadLink>
+		<Description>French (fr) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>German (Austria)</EnglishName>
+		<NativeName>Deutsch (Österreich)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/de/de_AT_frami.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/de/de_AT_frami.dic</DownloadLink>
+		<Description>German Austria (de_AT_frami) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>German (Germany)</EnglishName>
+		<NativeName>Deutsch (Deutschland)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/de/de_DE_frami.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/de/de_DE_frami.dic</DownloadLink>
+		<Description>German Germany (de_DE_frami) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>German (Switzerland)</EnglishName>
+		<NativeName>Deutsch (Schweiz)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/de/de_CH_frami.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/de/de_CH_frami.dic</DownloadLink>
+		<Description>German Switzerland (de_CH_frami) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Greek</EnglishName>
+		<NativeName>Ελληνικά</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/el_GR/el_GR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/el_GR/el_GR.dic</DownloadLink>
+		<Description>Greek (el_GR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Hebrew</EnglishName>
+		<NativeName>עברית</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/he_IL/he_IL.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/he_IL/he_IL.dic</DownloadLink>
+		<Description>Hebrew (he_IL) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Hindi</EnglishName>
+		<NativeName>हिंदी</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/hi_IN/hi_IN.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/hi_IN/hi_IN.dic</DownloadLink>
+		<Description>Hindi (hi_IN) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Hungarian</EnglishName>
+		<NativeName>Magyar</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/hu_HU/hu_HU.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/hu_HU/hu_HU.dic</DownloadLink>
+		<Description>Hungarian (hu_HU) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Icelandic</EnglishName>
+		<NativeName>íslenska</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/is/is.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/is/is.dic</DownloadLink>
+		<Description>Icelandic (is) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Indonesian</EnglishName>
+		<NativeName>Indonesia</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/id/id_ID.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/id/id_ID.dic</DownloadLink>
+		<Description>Indonesian (id_ID) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Irish</EnglishName>
+		<NativeName>Gaeilge</NativeName>
+		<DownloadLink>https://extensions.libreoffice.org/assets/downloads/z/focloiri-gaeilge-5-0.oxt</DownloadLink>
+		<Description>Irish language spell checker, thesaurus, and hyphenation patterns 4.5</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Italian</EnglishName>
+		<NativeName>Italiano</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/it_IT/it_IT.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/it_IT/it_IT.dic</DownloadLink>
+		<Description>Italian (it_IT) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Khmer</EnglishName>
+		<NativeName>Khmer</NativeName>
+		<DownloadLink>http://downloads.sourceforge.net/project/aoo-extensions/5067/2/dict-km.oxt</DownloadLink>
+		<Description>Khmer spelling dictionary 2011.05.11 (no LibreOffice equivalent)</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Korean</EnglishName>
+		<NativeName>한글</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ko_KR/ko_KR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ko_KR/ko_KR.dic</DownloadLink>
+		<Description>Korean (ko_KR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Latin</EnglishName>
+		<NativeName>Latina</NativeName>
+		<DownloadLink>https://extensions.libreoffice.org/assets/downloads/z/dict-la-2013-03-31.oxt</DownloadLink>
+		<Description>Latin spelling and hyphenation dictionaries 2013.03.31</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Latvian</EnglishName>
+		<NativeName>Latviešu</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/lv_LV/lv_LV.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/lv_LV/lv_LV.dic</DownloadLink>
+		<Description>Latvian (lv_LV) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Lithuanian</EnglishName>
+		<NativeName>Lietuvių</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/lt_LT/lt.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/lt_LT/lt.dic</DownloadLink>
+		<Description>Lithuanian (lt) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Lower Sorbian</EnglishName>
+		<NativeName>dolnoserbšćina</NativeName>
+		<DownloadLink>https://extensions.libreoffice.org/assets/downloads/z/lower-sorbian-spelling-dictionary-1-5-0.oxt</DownloadLink>
+		<Description>Lower Sorbian dictionary 1.4.6</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Macedonian</EnglishName>
+		<NativeName>Macedonian</NativeName>
+		<DownloadLink>http://downloads.sourceforge.net/project/aoo-extensions/3403/0/dict-mk.oxt</DownloadLink>
+		<Description>Macedonian dictionary (no LibreOffice equivalent)</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Malay</EnglishName>
+		<NativeName>Malay</NativeName>
+		<DownloadLink>http://downloads.sourceforge.net/project/aoo-extensions/3904/0/ms_my.oxt</DownloadLink>
+		<Description>Malay Spell Checker v0.1 (no LibreOffice equivalent)</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Malayalam</EnglishName>
+		<NativeName>Malayalam</NativeName>
+		<DownloadLink>https://master.dl.sourceforge.net/project/aoo-extensions/2741/3/ml_in_dict-1-1.oxt</DownloadLink>
+		<Description>Malayalam Spellchecker 1.1.0 (no LibreOffice equivalent)</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Norwegian (Bokmål)</EnglishName>
+		<NativeName>Norsk bokmål</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/no/nb_NO.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/no/nb_NO.dic</DownloadLink>
+		<Description>Norwegian Bokmål (nb_NO) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Norwegian (Nynorsk)</EnglishName>
+		<NativeName>Norsk nynorsk</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/no/nn_NO.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/no/nn_NO.dic</DownloadLink>
+		<Description>Norwegian Nynorsk (nn_NO) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Polish</EnglishName>
+		<NativeName>polski</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/pl_PL/pl_PL.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/pl_PL/pl_PL.dic</DownloadLink>
+		<Description>Polish (pl_PL) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Portuguese (Brazil)</EnglishName>
+		<NativeName>Português (do Brasil)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/pt_BR/pt_BR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/pt_BR/pt_BR.dic</DownloadLink>
+		<Description>Portuguese Brazil (pt_BR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Portuguese (Portugal)</EnglishName>
+		<NativeName>Português (Portugal)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/pt_PT/pt_PT.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/pt_PT/pt_PT.dic</DownloadLink>
+		<Description>Portuguese Portugal (pt_PT) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Romanian</EnglishName>
+		<NativeName>română</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ro/ro_RO.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ro/ro_RO.dic</DownloadLink>
+		<Description>Romanian (ro_RO) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Russian</EnglishName>
+		<NativeName>Русский</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ru_RU/ru_RU.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ru_RU/ru_RU.dic</DownloadLink>
+		<Description>Russian (ru_RU) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Serbian (Cyrillic)</EnglishName>
+		<NativeName>српски</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sr/sr.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sr/sr.dic</DownloadLink>
+		<Description>Serbian Cyrillic (sr) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Serbian (Latin)</EnglishName>
+		<NativeName>srpski</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sr/sr-Latn.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sr/sr-Latn.dic</DownloadLink>
+		<Description>Serbian Latin (sr-Latn) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Sinhala</EnglishName>
+		<NativeName>සිංහල</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/si_LK/si_LK.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/si_LK/si_LK.dic</DownloadLink>
+		<Description>Sinhala (si_LK) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Slovak</EnglishName>
+		<NativeName>slovenčina</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sk_SK/sk_SK.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sk_SK/sk_SK.dic</DownloadLink>
+		<Description>Slovak (sk_SK) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Slovenian</EnglishName>
+		<NativeName>slovenski</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sl_SI/sl_SI.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sl_SI/sl_SI.dic</DownloadLink>
+		<Description>Slovenian (sl_SI) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Spanish (Spain)</EnglishName>
+		<NativeName>Español (España)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/es/es_ES.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/es/es_ES.dic</DownloadLink>
+		<Description>Spanish Spain (es_ES) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Spanish (Mexico)</EnglishName>
+		<NativeName>Español (México)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/es/es_MX.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/es/es_MX.dic</DownloadLink>
+		<Description>Spanish Mexico (es_MX) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Spanish (Argentina)</EnglishName>
+		<NativeName>Español (Argentina)</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/es/es_AR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/es/es_AR.dic</DownloadLink>
+		<Description>Spanish Argentina (es_AR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Swahili</EnglishName>
+		<NativeName>Kiswahili</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sw_TZ/sw_TZ.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sw_TZ/sw_TZ.dic</DownloadLink>
+		<Description>Swahili (sw_TZ) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Swedish</EnglishName>
+		<NativeName>Svenska</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sv_SE/sv_SE.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/sv_SE/sv_SE.dic</DownloadLink>
+		<Description>Swedish (sv_SE) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Thai</EnglishName>
+		<NativeName>ภาษาไทย</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/th_TH/th_TH.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/th_TH/th_TH.dic</DownloadLink>
+		<Description>Thai (th_TH) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Turkish</EnglishName>
+		<NativeName>Türkçe</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/tr_TR/tr_TR.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/tr_TR/tr_TR.dic</DownloadLink>
+		<Description>Turkish (tr_TR) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Ukrainian</EnglishName>
+		<NativeName>Українська</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/uk_UA/uk_UA.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/uk_UA/uk_UA.dic</DownloadLink>
+		<Description>Ukrainian (uk_UA) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Valencian</EnglishName>
+		<NativeName>valencià</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ca/dictionaries/ca-valencia.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/ca/dictionaries/ca-valencia.dic</DownloadLink>
+		<Description>Catalan/Valencian (ca-valencia) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Vietnamese</EnglishName>
+		<NativeName>Tiếng Việt</NativeName>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/vi/vi_VN.aff</DownloadLink>
+		<DownloadLink>https://raw.githubusercontent.com/LibreOffice/dictionaries/master/vi/vi_VN.dic</DownloadLink>
+		<Description>Vietnamese (vi_VN) - LibreOffice dictionaries</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Vietnamese and English</EnglishName>
+		<NativeName>Tiếng Việt and English</NativeName>
+		<DownloadLink>https://github.com/SubtitleEdit/support-files/raw/master/hunspell/vi_VN-and-English.zip</DownloadLink>
+		<Description>Vietnamese/English by MMT Gouenji Tech - 2022-02-12</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Welsh (Wales)</EnglishName>
+		<NativeName>Welsh (Wales)</NativeName>
+		<DownloadLink>https://downloads.sourceforge.net/project/aoo-extensions/1583/1/geiriadur-cy.oxt</DownloadLink>
+		<Description>Welsh spell checker (no LibreOffice equivalent)</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Xhosa (South Africa)</EnglishName>
+		<NativeName>Xhosa (South Africa)</NativeName>
+		<DownloadLink>https://sourceforge.net/projects/aoo-extensions/files/3133/0/dict-xh_za-2009.10.30.oxt/download</DownloadLink>
+		<Description>Xhosa spell checker (no LibreOffice equivalent)</Description>
+	</Dictionary>
+	<Dictionary>
+		<EnglishName>Zulu</EnglishName>
+		<NativeName>IsiZulu</NativeName>
+		<DownloadLink>https://downloads.sourceforge.net/project/aoo-extensions/3132/3/dict-zu_za-2010.01.26.oxt</DownloadLink>
+		<Description>Zulu spell checker (no LibreOffice equivalent)</Description>
+	</Dictionary>
+</OpenOfficeDictionaries>

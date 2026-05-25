@@ -1,0 +1,44 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore SubtitleEdit.sln
+
+    - name: Build Subtitle Edit
+      run: msbuild SubtitleEdit.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+
+    - name: Prepare Artifacts
+      run: |
+        mkdir artifacts
+        copy src\ui\bin\Release\SubtitleEdit.exe artifacts\
+        copy src\ui\bin\Release\libse.dll artifacts\
+        if (Test-Path src\ui\bin\Release\Nikse.SubtitleEdit.Core.dll) { copy src\ui\bin\Release\Nikse.SubtitleEdit.Core.dll artifacts\ }
+        # Add other necessary DLLs if they exist
+        dir src\ui\bin\Release\*.dll | ForEach-Object { copy $_.FullName artifacts\ }
+      shell: powershell
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SubtitleEdit-Build
+        path: artifacts/
