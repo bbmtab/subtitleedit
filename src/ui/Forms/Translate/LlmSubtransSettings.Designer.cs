@@ -759,6 +759,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private System.Windows.Forms.CheckBox checkBoxAddRtlMarkers;
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.Button buttonCancel;
+        private System.Windows.Forms.Button buttonResetDefaults;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPagePaths;
         private System.Windows.Forms.TabPage tabPageServer;
