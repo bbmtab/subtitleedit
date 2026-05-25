@@ -1684,6 +1684,18 @@ namespace Nikse.SubtitleEdit.Forms.Translate
 
         private void buttonStrategy_Click(object sender, EventArgs e)
         {
+            if (_autoTranslator.GetType() == typeof(LlmSubTrans))
+            {
+                using (var form = new UI.Forms.Translate.LlmSubtransSettings())
+                {
+                    if (form.ShowDialog(this) == DialogResult.OK)
+                    {
+                        SetAutoTranslatorEngine();
+                    }
+                }
+                return;
+            }
+
             using (var form = new AutoTranslateSettings(_autoTranslator.GetType(), _autoTranslator.Name))
             {
                 form.ShowDialog(this);

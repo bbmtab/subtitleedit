@@ -101,6 +101,7 @@ namespace Nikse.SubtitleEdit.Core.Settings
         public string LlmSubtransUrl { get; set; }
         public string LlmSubtransApiKey { get; set; }
         public string LlmSubtransModel { get; set; }
+        public string LlmSubtransEndpoint { get; set; }
         public string LlmSubtransPrompt { get; set; }
         public double LlmSubtransTemperature { get; set; }
         public int LlmSubtransRateLimit { get; set; }
@@ -109,8 +110,22 @@ namespace Nikse.SubtitleEdit.Core.Settings
         public int LlmSubtransMaxRetries { get; set; }
         public int LlmSubtransBackoffTime { get; set; }
         public int LlmSubtransSceneThreshold { get; set; }
+        public int LlmSubtransBatchThreshold { get; set; }
+        public int LlmSubtransMaxSummaries { get; set; }
         public string LlmSubtransPythonPath { get; set; }
         public string LlmSubtransScriptPath { get; set; }
+        public string LlmSubtransInstructionFile { get; set; }
+        public string LlmSubtransNamesFile { get; set; }
+        public string LlmSubtransTerminologyFile { get; set; }
+        public string LlmSubtransSubstitution { get; set; }
+        public bool LlmSubtransProject { get; set; }
+        public bool LlmSubtransBuildTerminologyMap { get; set; }
+        public bool LlmSubtransPostProcess { get; set; }
+        public bool LlmSubtransChat { get; set; }
+        public bool LlmSubtransSystemMessages { get; set; }
+        public bool LlmSubtransAuto { get; set; }
+        public bool LlmSubtransIncludeOriginal { get; set; }
+        public bool LlmSubtransAddRtlMarkers { get; set; }
         public string OllamaPrompt { get; set; }
         public string KoboldCppUrl { get; set; }
         public string KoboldCppPrompt { get; set; }

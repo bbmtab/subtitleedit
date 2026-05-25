@@ -132,9 +132,10 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var args = new StringBuilder();
             args.Append($"\"{scriptPath}\" ");
             args.Append($"\"{tempInput}\" ");
-            args.Append("--project ");
+            if (Configuration.Settings.Tools.LlmSubtransProject) args.Append("--project ");
             args.Append($"-l \"{targetLanguageCode}\" ");
             args.Append($"-s \"{Configuration.Settings.Tools.LlmSubtransUrl}\" ");
+            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransEndpoint)) args.Append($"-e \"{Configuration.Settings.Tools.LlmSubtransEndpoint}\" ");
             args.Append($"-k \"{Configuration.Settings.Tools.LlmSubtransApiKey}\" ");
             args.Append($"-m \"{Configuration.Settings.Tools.LlmSubtransModel}\" ");
             args.Append($"--temperature \"{Configuration.Settings.Tools.LlmSubtransTemperature.ToString(System.Globalization.CultureInfo.InvariantCulture)}\" ");
@@ -144,8 +145,33 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             args.Append($"--maxretries \"{Configuration.Settings.Tools.LlmSubtransMaxRetries}\" ");
             args.Append($"--backofftime \"{Configuration.Settings.Tools.LlmSubtransBackoffTime}\" ");
             args.Append($"--scenethreshold \"{Configuration.Settings.Tools.LlmSubtransSceneThreshold}\" ");
-            args.Append("--chat ");
-            args.Append("--postprocess ");
+            args.Append($"--batchthreshold \"{Configuration.Settings.Tools.LlmSubtransBatchThreshold}\" ");
+            args.Append($"--maxsummaries \"{Configuration.Settings.Tools.LlmSubtransMaxSummaries}\" ");
+            if (Configuration.Settings.Tools.LlmSubtransChat) args.Append("--chat ");
+            if (Configuration.Settings.Tools.LlmSubtransPostProcess) args.Append("--postprocess ");
+            if (Configuration.Settings.Tools.LlmSubtransSystemMessages) args.Append("--systemmessages ");
+            if (Configuration.Settings.Tools.LlmSubtransAuto) args.Append("--auto ");
+            if (Configuration.Settings.Tools.LlmSubtransIncludeOriginal) args.Append("--includeoriginal ");
+            if (Configuration.Settings.Tools.LlmSubtransAddRtlMarkers) args.Append("--addrtlmarkers ");
+            if (Configuration.Settings.Tools.LlmSubtransBuildTerminologyMap) args.Append("--build-terminology-map ");
+
+            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
+                args.Append($"--instructionfile \"{Configuration.Settings.Tools.LlmSubtransInstructionFile}\" ");
+
+            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransNamesFile))
+                args.Append($"--names \"{Configuration.Settings.Tools.LlmSubtransNamesFile}\" ");
+
+            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransTerminologyFile))
+                args.Append($"--terminology-file \"{Configuration.Settings.Tools.LlmSubtransTerminologyFile}\" ");
+
+            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransSubstitution))
+            {
+                foreach (var sub in Configuration.Settings.Tools.LlmSubtransSubstitution.Split(';'))
+                {
+                    if (!string.IsNullOrWhiteSpace(sub))
+                        args.Append($"--substitution \"{sub.Trim()}\" ");
+                }
+            }
 
             var processStartInfo = new ProcessStartInfo
             {
