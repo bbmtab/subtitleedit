@@ -30,6 +30,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
         private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private int _currentBatchIndex = 0;
+        private Dictionary<string, string> _translationMap;
+        private List<string> _sequentialCache;
 
         public LlmSubTrans()
         {
@@ -50,6 +52,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         {
             _cachedSubtitle = null;
             _currentBatchIndex = 0;
+            _translationMap = null;
+            _sequentialCache = null;
         }
 
         public List<TranslationPair> GetSupportedSourceLanguages()
@@ -84,14 +88,13 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     await TranslateWholeSubtitle(sourceLanguageCode, targetLanguageCode, cancellationToken);
                 }
 
-                if (_cachedSubtitle == null)
+                if (_cachedSubtitle == null || _translationMap == null)
                 {
                     return "Error: " + (Error ?? "Translation failed.");
                 }
 
                 var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 var translatedLines = new List<string>();
-                var formatting = new Formatting();
                 var logFile = Path.Combine(!string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath(), "llm_subtrans_log.txt");
 
                 foreach (var line in lines)
@@ -103,74 +106,32 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         continue;
                     }
 
-                    var index = -1;
-                    var normalizedSearch = NormalizeForMatch(searchLine);
-
-                    // 1. First, check if the current pointer matches (most likely in sequential SE run)
-                    if (_currentBatchIndex < _originalSubtitle.Paragraphs.Count)
+                    // 1. Try dictionary lookup (unformatted text match)
+                    if (_translationMap.TryGetValue(searchLine, out string translated))
                     {
-                        var pText = _originalSubtitle.Paragraphs[_currentBatchIndex].Text;
-                        if (pText.Trim() == searchLine || 
-                            formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
-                            NormalizeForMatch(pText) == normalizedSearch)
-                        {
-                            index = _currentBatchIndex;
-                        }
+                        translatedLines.Add(translated);
+                        continue;
                     }
 
-                    // 2. If not, look ahead a bit
-                    if (index == -1)
+                    // 2. Try normalized lookup
+                    var normalized = NormalizeForMatch(searchLine);
+                    if (_translationMap.TryGetValue(normalized, out translated))
                     {
-                        int lookAhead = 20;
-                        int startSearch = _currentBatchIndex;
-                        int endSearch = Math.Min(_originalSubtitle.Paragraphs.Count, _currentBatchIndex + lookAhead);
-                        for (int i = startSearch; i < endSearch; i++)
-                        {
-                            var pText = _originalSubtitle.Paragraphs[i].Text;
-                            if (pText.Trim() == searchLine || 
-                                formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
-                                NormalizeForMatch(pText) == normalizedSearch)
-                            {
-                                index = i;
-                                break;
-                            }
-                        }
+                        translatedLines.Add(translated);
+                        continue;
                     }
 
-                    // 3. If still not found, search globally
-                    if (index == -1)
+                    // 3. Fallback: Sequential access (the most reliable for bulk runs)
+                    if (_currentBatchIndex < _sequentialCache.Count)
                     {
-                        for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
-                        {
-                            var pText = _originalSubtitle.Paragraphs[i].Text;
-                            if (pText.Trim() == searchLine || 
-                                formatting.SetTagsAndReturnTrimmed(pText, sourceLanguageCode).Trim() == searchLine ||
-                                NormalizeForMatch(pText) == normalizedSearch)
-                            {
-                                index = i;
-                                break;
-                            }
-                        }
-                    }
-
-                    // 4. LAST RESORT: If we have a cached translation and we are in a batch run,
-                    // just take the next line in the cache. SE calls this sequentially.
-                    if (index == -1 && _currentBatchIndex < _cachedSubtitle.Paragraphs.Count)
-                    {
-                        index = _currentBatchIndex;
-                        try { File.AppendAllText(logFile, $"\nMATCH WARNING: Using index fallback for '{searchLine}' -> Index {index}\n"); } catch { }
-                    }
-
-                    if (index >= 0 && index < _cachedSubtitle.Paragraphs.Count)
-                    {
-                        translatedLines.Add(_cachedSubtitle.Paragraphs[index].Text);
-                        _currentBatchIndex = index + 1;
+                        translatedLines.Add(_sequentialCache[_currentBatchIndex]);
+                        try { File.AppendAllText(logFile, $"\nSYNC: Using index fallback for '{searchLine}' -> '{_sequentialCache[_currentBatchIndex]}'\n"); } catch { }
+                        _currentBatchIndex++;
                     }
                     else
                     {
-                        // Final fallback - should not happen in normal batch use
-                        translatedLines.Add("[Match failed: " + searchLine.Substring(0, Math.Min(10, searchLine.Length)) + "]");
-                        try { File.AppendAllText(logFile, $"\nMATCH FAIL: Absolutely no match for '{searchLine}' (Pointer: {_currentBatchIndex})\n"); } catch { }
+                        translatedLines.Add(searchLine);
+                        try { File.AppendAllText(logFile, $"\nSYNC FAIL: Out of cache for '{searchLine}'\n"); } catch { }
                     }
                 }
 
@@ -189,6 +150,10 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 Error = "Subtitle data not available.";
                 return;
             }
+
+            _translationMap = new Dictionary<string, string>();
+            _sequentialCache = new List<string>();
+            _currentBatchIndex = 0;
 
             var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
             var tempInput = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
@@ -210,7 +175,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 return;
             }
 
-            // Fix URL and Endpoint joining (avoid double slashes)
             var baseUrl = Configuration.Settings.Tools.LlmSubtransUrl?.TrimEnd('/');
             var endpoint = Configuration.Settings.Tools.LlmSubtransEndpoint?.TrimStart('/');
             
@@ -233,7 +197,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             args.Append($"--scenethreshold \"{Configuration.Settings.Tools.LlmSubtransSceneThreshold}\" ");
             args.Append($"--batchthreshold \"{Configuration.Settings.Tools.LlmSubtransBatchThreshold}\" ");
             args.Append($"--maxsummaries \"{Configuration.Settings.Tools.LlmSubtransMaxSummaries}\" ");
-            if (Configuration.Settings.Tools.LlmSubtransChat || endpoint.Contains("chat")) args.Append("--chat ");
+            if (Configuration.Settings.Tools.LlmSubtransChat || (endpoint != null && endpoint.Contains("chat"))) args.Append("--chat ");
             if (Configuration.Settings.Tools.LlmSubtransPostProcess) args.Append("--postprocess ");
             if (Configuration.Settings.Tools.LlmSubtransSystemMessages) args.Append("--systemmessages ");
             if (Configuration.Settings.Tools.LlmSubtransAuto) args.Append("--auto ");
@@ -262,7 +226,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (!string.IsNullOrEmpty(termFile)) args.Append($"--terminology-file \"{termFile}\" ");
 
             var workingDir = Path.GetDirectoryName(scriptPath);
-            if (workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase)) workingDir = Path.GetDirectoryName(workingDir);
+            if (workingDir != null && workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase)) workingDir = Path.GetDirectoryName(workingDir);
 
             var processStartInfo = new ProcessStartInfo
             {
@@ -304,7 +268,30 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
                         _cachedSubtitle = new Subtitle();
-                        srt.LoadSubtitle(_cachedSubtitle, null, tempOutput);
+                        srt.LoadSubtitle(_cachedSubtitle, null, tempOutput, true);
+                        
+                        var formatting = new Formatting();
+                        for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
+                        {
+                            if (i < _cachedSubtitle.Paragraphs.Count)
+                            {
+                                var originalText = _originalSubtitle.Paragraphs[i].Text;
+                                var translatedText = _cachedSubtitle.Paragraphs[i].Text;
+                                
+                                var unformattedOrig = formatting.SetTagsAndReturnTrimmed(originalText, sourceLanguageCode).Trim();
+                                var unformattedTrans = formatting.SetTagsAndReturnTrimmed(translatedText, targetLanguageCode).Trim();
+                                
+                                if (!string.IsNullOrEmpty(unformattedOrig) && !_translationMap.ContainsKey(unformattedOrig))
+                                    _translationMap.Add(unformattedOrig, unformattedTrans);
+                                
+                                var normalizedOrig = NormalizeForMatch(unformattedOrig);
+                                if (!string.IsNullOrEmpty(normalizedOrig) && !_translationMap.ContainsKey(normalizedOrig))
+                                    _translationMap.Add(normalizedOrig, unformattedTrans);
+
+                                _sequentialCache.Add(unformattedTrans);
+                            }
+                        }
+
                         _lastSourceLanguage = sourceLanguageCode;
                         _lastTargetLanguage = targetLanguageCode;
                         _currentBatchIndex = 0;
