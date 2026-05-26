@@ -223,6 +223,8 @@ namespace Nikse.SubtitleEdit.Logic
         public Keys MainListViewToggleCustomTags2 { get; set; }
         public Keys MainListViewToggleCustomTags3 { get; set; }
         public Keys MainListViewToggleMusicSymbols { get; set; }
+        public Keys MainListViewToggleSquareBrackets { get; set; }
+        public Keys MainListViewToggleParentheses { get; set; }
         public Keys MainListViewAutoDuration { get; set; }
         public Keys MainListViewAlignmentN1 { get; set; }
         public Keys MainListViewAlignmentN2 { get; set; }
