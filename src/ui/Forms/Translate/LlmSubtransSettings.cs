@@ -39,9 +39,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             checkBoxAuto.Checked = ts.LlmSubtransAuto;
             checkBoxIncludeOriginal.Checked = ts.LlmSubtransIncludeOriginal;
             checkBoxAddRtlMarkers.Checked = ts.LlmSubtransAddRtlMarkers;
-            checkBoxForceLocalSettings.Checked = ts.LlmSubtransForceLocalSettings;
-
-            labelSettingsFolderCurrent.Text = "Current folder: " + Configuration.DataDirectory;
 
             if (string.IsNullOrEmpty(textBoxPythonPath.Text))
             {
@@ -101,34 +98,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             ts.LlmSubtransAuto = checkBoxAuto.Checked;
             ts.LlmSubtransIncludeOriginal = checkBoxIncludeOriginal.Checked;
             ts.LlmSubtransAddRtlMarkers = checkBoxAddRtlMarkers.Checked;
-
-            if (ts.LlmSubtransForceLocalSettings != checkBoxForceLocalSettings.Checked)
-            {
-                ts.LlmSubtransForceLocalSettings = checkBoxForceLocalSettings.Checked;
-                var localSettingsFile = Path.Combine(Configuration.BaseDirectory, ".localsettings");
-                try
-                {
-                    if (ts.LlmSubtransForceLocalSettings)
-                    {
-                        if (!File.Exists(localSettingsFile))
-                        {
-                            File.WriteAllText(localSettingsFile, "Force local settings");
-                        }
-                    }
-                    else
-                    {
-                        if (File.Exists(localSettingsFile))
-                        {
-                            File.Delete(localSettingsFile);
-                        }
-                    }
-                    MessageBox.Show("Settings folder changed. Please restart Subtitle Edit for changes to take effect.", "Restart required", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Failed to change settings folder: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
 
             Nikse.SubtitleEdit.Core.Common.Configuration.Settings.Save();
             DialogResult = DialogResult.OK;

@@ -72,15 +72,11 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonResetDefaults = new System.Windows.Forms.Button();
-            this.checkBoxForceLocalSettings = new System.Windows.Forms.CheckBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPagePaths = new System.Windows.Forms.TabPage();
             this.tabPageServer = new System.Windows.Forms.TabPage();
             this.tabPageAdvanced = new System.Windows.Forms.TabPage();
             this.tabPageFiles = new System.Windows.Forms.TabPage();
-            this.tabPageSettings = new System.Windows.Forms.TabPage();
-            this.labelSettingsFolderInfo = new System.Windows.Forms.Label();
-            this.labelSettingsFolderCurrent = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTemperature)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRateLimit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMinBatch)).BeginInit();
@@ -95,7 +91,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageServer.SuspendLayout();
             this.tabPageAdvanced.SuspendLayout();
             this.tabPageFiles.SuspendLayout();
-            this.tabPageSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // labelPythonPath
@@ -602,42 +597,12 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.buttonResetDefaults.Text = "Reset defaults";
             this.buttonResetDefaults.UseVisualStyleBackColor = true;
             // 
-            // checkBoxForceLocalSettings
-            // 
-            this.checkBoxForceLocalSettings.AutoSize = true;
-            this.checkBoxForceLocalSettings.Location = new System.Drawing.Point(9, 70);
-            this.checkBoxForceLocalSettings.Name = "checkBoxForceLocalSettings";
-            this.checkBoxForceLocalSettings.Size = new System.Drawing.Size(185, 17);
-            this.checkBoxForceLocalSettings.TabIndex = 0;
-            this.checkBoxForceLocalSettings.Text = "Use local settings (Portable mode)";
-            this.checkBoxForceLocalSettings.UseVisualStyleBackColor = true;
-            // 
-            // labelSettingsFolderInfo
-            // 
-            this.labelSettingsFolderInfo.AutoSize = true;
-            this.labelSettingsFolderInfo.Location = new System.Drawing.Point(6, 13);
-            this.labelSettingsFolderInfo.Name = "labelSettingsFolderInfo";
-            this.labelSettingsFolderInfo.Size = new System.Drawing.Size(350, 13);
-            this.labelSettingsFolderInfo.TabIndex = 1;
-            this.labelSettingsFolderInfo.Text = "Choose where to store Settings.xml and other configuration files.";
-            // 
-            // labelSettingsFolderCurrent
-            // 
-            this.labelSettingsFolderCurrent.AutoSize = true;
-            this.labelSettingsFolderCurrent.ForeColor = System.Drawing.Color.Gray;
-            this.labelSettingsFolderCurrent.Location = new System.Drawing.Point(6, 40);
-            this.labelSettingsFolderCurrent.Name = "labelSettingsFolderCurrent";
-            this.labelSettingsFolderCurrent.Size = new System.Drawing.Size(100, 13);
-            this.labelSettingsFolderCurrent.TabIndex = 2;
-            this.labelSettingsFolderCurrent.Text = "Current folder: ...";
-            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPagePaths);
             this.tabControl1.Controls.Add(this.tabPageServer);
             this.tabControl1.Controls.Add(this.tabPageFiles);
             this.tabControl1.Controls.Add(this.tabPageAdvanced);
-            this.tabControl1.Controls.Add(this.tabPageSettings);
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -736,18 +701,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageFiles.Text = "Files";
             this.tabPageFiles.UseVisualStyleBackColor = true;
             // 
-            // tabPageSettings
-            // 
-            this.tabPageSettings.Controls.Add(this.labelSettingsFolderInfo);
-            this.tabPageSettings.Controls.Add(this.labelSettingsFolderCurrent);
-            this.tabPageSettings.Controls.Add(this.checkBoxForceLocalSettings);
-            this.tabPageSettings.Location = new System.Drawing.Point(4, 22);
-            this.tabPageSettings.Name = "tabPageSettings";
-            this.tabPageSettings.Size = new System.Drawing.Size(452, 264);
-            this.tabPageSettings.TabIndex = 4;
-            this.tabPageSettings.Text = "Settings folder";
-            this.tabPageSettings.UseVisualStyleBackColor = true;
-            // 
             // LlmSubtransSettings
             // 
             this.AcceptButton = this.buttonOK;
@@ -784,8 +737,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageAdvanced.PerformLayout();
             this.tabPageFiles.ResumeLayout(false);
             this.tabPageFiles.PerformLayout();
-            this.tabPageSettings.ResumeLayout(false);
-            this.tabPageSettings.PerformLayout();
             this.ResumeLayout(false);
         }
 
@@ -845,15 +796,11 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonResetDefaults;
-        private System.Windows.Forms.CheckBox checkBoxForceLocalSettings;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPagePaths;
         private System.Windows.Forms.TabPage tabPageServer;
         private System.Windows.Forms.TabPage tabPageAdvanced;
         private System.Windows.Forms.TabPage tabPageFiles;
-        private System.Windows.Forms.TabPage tabPageSettings;
-        private System.Windows.Forms.Label labelSettingsFolderInfo;
-        private System.Windows.Forms.Label labelSettingsFolderCurrent;
         private System.Windows.Forms.Button buttonBrowseFolder;
     }
 }

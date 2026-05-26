@@ -113,7 +113,6 @@ namespace Nikse.SubtitleEdit.Core.Settings
         public int LlmSubtransBatchThreshold { get; set; }
         public int LlmSubtransMaxSummaries { get; set; }
         public string LlmSubtransPythonPath { get; set; }
-        public bool LlmSubtransForceLocalSettings { get; set; }
         public string LlmSubtransScriptPath { get; set; }
         public string LlmSubtransInstructionFile { get; set; }
         public string LlmSubtransNamesFile { get; set; }

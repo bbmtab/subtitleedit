@@ -1050,6 +1050,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             }
 
             checkBoxCheckForUpdates.Checked = gs.CheckForUpdates;
+            checkBoxPortableMode.Checked = gs.ForceLocalSettings;
             checkBoxAutoSave.Checked = gs.AutoSave;
 
             comboBoxSpellChecker.SelectedIndex = gs.SpellChecker.Contains("word", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
@@ -2258,6 +2259,35 @@ namespace Nikse.SubtitleEdit.Forms.Options
             gs.AutoBackupDeleteAfterMonths = comboBoxAutoBackupDeleteAfter.SelectedIndex + 1;
 
             gs.CheckForUpdates = checkBoxCheckForUpdates.Checked;
+
+            if (gs.ForceLocalSettings != checkBoxPortableMode.Checked)
+            {
+                gs.ForceLocalSettings = checkBoxPortableMode.Checked;
+                var localSettingsFile = Path.Combine(Configuration.BaseDirectory, ".localsettings");
+                try
+                {
+                    if (gs.ForceLocalSettings)
+                    {
+                        if (!File.Exists(localSettingsFile))
+                        {
+                            File.WriteAllText(localSettingsFile, "Force local settings");
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(localSettingsFile))
+                        {
+                            File.Delete(localSettingsFile);
+                        }
+                    }
+                    MessageBox.Show("Settings folder changed. Please restart Subtitle Edit for changes to take effect.", "Restart required", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to change settings folder: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
             gs.AutoSave = checkBoxAutoSave.Checked;
 
             if (comboBoxTimeCodeMode.Visible)
@@ -3794,7 +3824,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
             {
                 listViewFileTypeAssociations.Visible = false;
                 buttonUpdateFileTypeAssociations.Visible = false;
-                labelUpdateFileTypeAssociationsStatus.Text = "Warning: 'Icons' folder missing! Portable version needs 'Icons' folder for file associations.";
+                labelUpdateFileTypeAssociationsStatus.ForeColor = System.Drawing.Color.Red;
+                labelUpdateFileTypeAssociationsStatus.Text = "CRITICAL ERROR: 'Icons' folder is missing! File associations cannot be displayed. Please copy the 'Icons' folder to: " + Configuration.BaseDirectory;
                 return;
             }
 

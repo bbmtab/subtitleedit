@@ -219,6 +219,7 @@ namespace Nikse.SubtitleEdit.Core.Settings
         public string PreviewAssaText { get; set; }
         public string TagsInToggleHiTags { get; set; }
         public string TagsInToggleCustomTags { get; set; }
+        public bool ForceLocalSettings { get; set; }
         public string TagsInToggleCustomTags2 { get; set; }
         public string TagsInToggleCustomTags3 { get; set; }
         public bool ShowProgress { get; set; }

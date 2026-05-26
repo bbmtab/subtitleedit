@@ -46,6 +46,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.labelSplitBehavior = new System.Windows.Forms.Label();
             this.comboBoxSplitBehavior = new Nikse.SubtitleEdit.Controls.NikseComboBox();
             this.checkBoxAutoSave = new System.Windows.Forms.CheckBox();
+            this.checkBoxPortableMode = new System.Windows.Forms.CheckBox();
             this.comboBoxSaveAsFileNameFrom = new Nikse.SubtitleEdit.Controls.NikseComboBox();
             this.labelSaveAsFileNameFrom = new System.Windows.Forms.Label();
             this.groupBoxGeneralRules = new System.Windows.Forms.GroupBox();
@@ -662,6 +663,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.groupBoxMiscellaneous.Controls.Add(this.labelTranslationAutoSuffix);
             this.groupBoxMiscellaneous.Controls.Add(this.labelSplitBehavior);
             this.groupBoxMiscellaneous.Controls.Add(this.comboBoxSplitBehavior);
+            this.groupBoxMiscellaneous.Controls.Add(this.checkBoxPortableMode);
             this.groupBoxMiscellaneous.Controls.Add(this.checkBoxAutoSave);
             this.groupBoxMiscellaneous.Controls.Add(this.comboBoxSaveAsFileNameFrom);
             this.groupBoxMiscellaneous.Controls.Add(this.labelSaveAsFileNameFrom);
@@ -817,6 +819,16 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.checkBoxAutoSave.TabIndex = 30;
             this.checkBoxAutoSave.Text = "Auto save";
             this.checkBoxAutoSave.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxPortableMode
+            // 
+            this.checkBoxPortableMode.AutoSize = true;
+            this.checkBoxPortableMode.Location = new System.Drawing.Point(421, 465);
+            this.checkBoxPortableMode.Name = "checkBoxPortableMode";
+            this.checkBoxPortableMode.Size = new System.Drawing.Size(185, 17);
+            this.checkBoxPortableMode.TabIndex = 29;
+            this.checkBoxPortableMode.Text = "Use local settings (Portable mode)";
+            this.checkBoxPortableMode.UseVisualStyleBackColor = true;
             // 
             // comboBoxSaveAsFileNameFrom
             // 
@@ -7393,6 +7405,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
         private Nikse.SubtitleEdit.Controls.NikseTextBox textBoxGoogleTransleApiKey;
         private System.Windows.Forms.LinkLabel linkLabelGoogleTranslateSignUp;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox checkBoxPortableMode;
         private System.Windows.Forms.CheckBox checkBoxAutoSave;
         private System.Windows.Forms.CheckBox checkBoxUseAlwaysToFile;
         private System.Windows.Forms.Label labelOptimalCharsPerSecond;
