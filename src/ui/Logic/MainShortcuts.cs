@@ -424,6 +424,8 @@ namespace Nikse.SubtitleEdit.Logic
             MainListViewToggleCustomTags2 = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewToggleCustomTags2);
             MainListViewToggleCustomTags3 = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewToggleCustomTags3);
             MainListViewToggleMusicSymbols = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewToggleMusicSymbols);
+            MainListViewToggleSquareBrackets = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewToggleSquareBrackets);
+            MainListViewToggleParentheses = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewToggleParentheses);
             MainListViewAutoDuration = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewAutoDuration);
             MainListViewAlignmentN1 = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewAlignmentN1);
             MainListViewAlignmentN2 = UiUtil.GetKeys(Configuration.Settings.Shortcuts.MainListViewAlignmentN2);

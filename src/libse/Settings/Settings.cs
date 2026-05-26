@@ -10492,6 +10492,8 @@ namespace Nikse.SubtitleEdit.Core.Settings
             textWriter.WriteElementString("MainListViewSplit", shortcuts.MainListViewSplit);
             textWriter.WriteElementString("MainListViewToggleDashes", shortcuts.MainListViewToggleDashes);
             textWriter.WriteElementString("MainListViewToggleMusicSymbols", shortcuts.MainListViewToggleMusicSymbols);
+            textWriter.WriteElementString("MainListViewToggleSquareBrackets", shortcuts.MainListViewToggleSquareBrackets);
+            textWriter.WriteElementString("MainListViewToggleParentheses", shortcuts.MainListViewToggleParentheses);
             textWriter.WriteElementString("MainListViewAlignment", shortcuts.MainListViewAlignment);
             textWriter.WriteElementString("MainListViewAlignmentN1", shortcuts.MainListViewAlignmentN1);
             textWriter.WriteElementString("MainListViewAlignmentN2", shortcuts.MainListViewAlignmentN2);

@@ -228,6 +228,8 @@ namespace Nikse.SubtitleEdit.Core.Settings
         public string MainListViewSplit { get; set; }
         public string MainListViewToggleDashes { get; set; }
         public string MainListViewToggleMusicSymbols { get; set; }
+        public string MainListViewToggleSquareBrackets { get; set; }
+        public string MainListViewToggleParentheses { get; set; }
         public string MainListViewAlignment { get; set; }
         public string MainListViewAlignmentN1 { get; set; }
         public string MainListViewAlignmentN2 { get; set; }
