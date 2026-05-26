@@ -70,6 +70,11 @@ namespace Nikse.SubtitleEdit.Core.Settings
             CustomSerialize(Configuration.SettingsFileName, this);
         }
 
+        public void Save(string fileName)
+        {
+            CustomSerialize(fileName, this);
+        }
+
         //private static void Serialize(string fileName, Settings settings)
         //{
         //    var s = new XmlSerializer(typeof(Settings));
