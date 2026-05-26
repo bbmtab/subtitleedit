@@ -81,30 +81,23 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     await TranslateWholeSubtitle(sourceLanguageCode, targetLanguageCode, cancellationToken);
                 }
 
-                if (_cachedSubtitle == null)
+                if (_cachedSubtitle == null || _sequentialCache == null)
                 {
                     _isFailed = true;
                     return "Error: " + (Error ?? "Translation failed.");
                 }
 
-                var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                var translatedLines = new List<string>();
-
-                foreach (var line in lines)
+                // We ignore the 'text' passed by SE and rely on our pre-mapped sequential cache.
+                // SE's AutoTranslate form iterates paragraph by paragraph in the same order
+                // as our _originalSubtitle passed in the constructor.
+                if (_currentBatchIndex < _sequentialCache.Count)
                 {
-                    // Sequential access is the only reliable way to map LLM results back to SE
-                    if (_currentBatchIndex < _sequentialCache.Count)
-                    {
-                        translatedLines.Add(_sequentialCache[_currentBatchIndex]);
-                        _currentBatchIndex++;
-                    }
-                    else
-                    {
-                        translatedLines.Add(line);
-                    }
+                    var result = _sequentialCache[_currentBatchIndex];
+                    _currentBatchIndex++;
+                    return result;
                 }
 
-                return string.Join(Environment.NewLine, translatedLines);
+                return text;
             }
             finally
             {
@@ -126,11 +119,13 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
             var sourceBaseName = !string.IsNullOrEmpty(FileName) ? Path.GetFileNameWithoutExtension(FileName) : "new_subtitle";
             
-            // Stable names to allow resuming
-            var tempInput = Path.Combine(subtitleFolder, $"{sourceBaseName}.llm-tmp.srt");
-            var tempOutput = Path.Combine(subtitleFolder, $"{sourceBaseName}.llm-out.srt");
+            // Temporary files in temp folder, but project file will be moved to source folder
+            var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
+            var tempInput = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
+            var tempOutput = Path.Combine(Path.GetTempPath(), $"se_llm_out_{uniqueId}.srt");
+            var tempProjectFile = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.subtrans");
             var finalProjectFile = Path.Combine(subtitleFolder, $"{sourceBaseName}.subtrans");
-            var tempProjectFile = Path.Combine(subtitleFolder, $"{sourceBaseName}.llm-tmp.subtrans");
+            var logFile = Path.Combine(subtitleFolder, "llm_subtrans_log.txt");
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
 
@@ -203,7 +198,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 FileName = pythonPath,
                 Arguments = args.ToString(),
-                UseShellExecute = true, // Open in a real terminal window
+                UseShellExecute = true, 
                 CreateNoWindow = false,
                 WorkingDirectory = workingDir
             };
@@ -223,28 +218,32 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                     if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
-                        // Handle project file renaming (llm-subtrans creates it based on input filename)
+                        // Sync project file to subtitle folder
                         if (File.Exists(tempProjectFile))
                         {
-                            if (File.Exists(finalProjectFile)) File.Delete(finalProjectFile);
-                            File.Move(tempProjectFile, finalProjectFile);
+                            try 
+                            { 
+                                if (File.Exists(finalProjectFile)) File.Delete(finalProjectFile);
+                                File.Move(tempProjectFile, finalProjectFile); 
+                            } catch { }
                         }
 
                         _cachedSubtitle = new Subtitle();
                         var linesFromFile = File.ReadAllLines(tempOutput, Encoding.UTF8).ToList();
                         srt.LoadSubtitle(_cachedSubtitle, linesFromFile, tempOutput);
                         
-                        // Populate sequential cache, ensuring it matches original count exactly
-                        for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
+                        // Robust Time-Based Mapping
+                        // We map each original paragraph to the closest result based on time
+                        foreach (var original in _originalSubtitle.Paragraphs)
                         {
-                            if (i < _cachedSubtitle.Paragraphs.Count)
+                            var match = GetBestTimeMatch(original, _cachedSubtitle.Paragraphs);
+                            if (match != null)
                             {
-                                _sequentialCache.Add(_cachedSubtitle.Paragraphs[i].Text);
+                                _sequentialCache.Add(match.Text);
                             }
                             else
                             {
-                                // If LLM returned fewer lines, fallback to original or empty
-                                _sequentialCache.Add(_originalSubtitle.Paragraphs[i].Text);
+                                _sequentialCache.Add(original.Text); // Fallback to original
                             }
                         }
 
@@ -252,7 +251,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         _lastTargetLanguage = targetLanguageCode;
                         _currentBatchIndex = 0;
 
-                        // Cleanup temp files
+                        // Cleanup
                         try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
                         try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
                     }
@@ -266,6 +265,44 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 Error = ex.Message;
             }
+        }
+
+        private Paragraph GetBestTimeMatch(Paragraph target, List<Paragraph> candidates)
+        {
+            Paragraph bestMatch = null;
+            double bestOverlap = -1;
+
+            foreach (var p in candidates)
+            {
+                // Calculate overlap in milliseconds
+                double start = Math.Max(target.StartTime.TotalMilliseconds, p.StartTime.TotalMilliseconds);
+                double end = Math.Min(target.EndTime.TotalMilliseconds, p.EndTime.TotalMilliseconds);
+                double overlap = end - start;
+
+                if (overlap > bestOverlap)
+                {
+                    bestOverlap = overlap;
+                    bestMatch = p;
+                }
+            }
+
+            // If overlap is too small (e.g. less than 1ms), consider if the target is exactly between candidates
+            if (bestOverlap <= 0)
+            {
+                // Just find the one with the closest start time
+                double minDiff = double.MaxValue;
+                foreach (var p in candidates)
+                {
+                    double diff = Math.Abs(target.StartTime.TotalMilliseconds - p.StartTime.TotalMilliseconds);
+                    if (diff < minDiff)
+                    {
+                        minDiff = diff;
+                        bestMatch = p;
+                    }
+                }
+            }
+
+            return bestMatch;
         }
     }
 }
