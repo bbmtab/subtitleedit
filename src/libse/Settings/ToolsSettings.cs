@@ -113,6 +113,7 @@ namespace Nikse.SubtitleEdit.Core.Settings
         public int LlmSubtransBatchThreshold { get; set; }
         public int LlmSubtransMaxSummaries { get; set; }
         public string LlmSubtransPythonPath { get; set; }
+        public bool LlmSubtransForceLocalSettings { get; set; }
         public string LlmSubtransScriptPath { get; set; }
         public string LlmSubtransInstructionFile { get; set; }
         public string LlmSubtransNamesFile { get; set; }
@@ -573,10 +574,11 @@ namespace Nikse.SubtitleEdit.Core.Settings
             LlmSubtransBackoffTime = 3;
             LlmSubtransSceneThreshold = 60;
             LlmSubtransProject = true;
-            LlmSubtransChat = true;
+            LlmSubtransChat = false;
             LlmSubtransPostProcess = true;
             LlmSubtransAuto = false;
             LlmSubtransSystemMessages = false;
+            LlmSubtransBuildTerminologyMap = true;
             LlmSubtransPythonPath = string.Empty;
             LlmSubtransScriptPath = string.Empty;
             TextToSpeechAzureRegion = "westeurope";

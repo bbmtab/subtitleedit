@@ -171,6 +171,11 @@ namespace Nikse.SubtitleEdit.Core.Common
                 return DataDirectoryOverride.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal) ? DataDirectoryOverride : DataDirectoryOverride + Path.DirectorySeparatorChar;
             }
 
+            if (File.Exists(Path.Combine(BaseDirectory, ".localsettings")))
+            {
+                return BaseDirectory;
+            }
+
             var appDataRoamingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Subtitle Edit");
             if (IsRunningOnLinux || IsRunningOnMac)
             {

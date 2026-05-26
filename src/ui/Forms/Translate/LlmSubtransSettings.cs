@@ -39,6 +39,9 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             checkBoxAuto.Checked = ts.LlmSubtransAuto;
             checkBoxIncludeOriginal.Checked = ts.LlmSubtransIncludeOriginal;
             checkBoxAddRtlMarkers.Checked = ts.LlmSubtransAddRtlMarkers;
+            checkBoxForceLocalSettings.Checked = ts.LlmSubtransForceLocalSettings;
+
+            labelSettingsFolderCurrent.Text = "Current folder: " + Configuration.DataDirectory;
 
             if (string.IsNullOrEmpty(textBoxPythonPath.Text))
             {
@@ -98,6 +101,34 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             ts.LlmSubtransAuto = checkBoxAuto.Checked;
             ts.LlmSubtransIncludeOriginal = checkBoxIncludeOriginal.Checked;
             ts.LlmSubtransAddRtlMarkers = checkBoxAddRtlMarkers.Checked;
+
+            if (ts.LlmSubtransForceLocalSettings != checkBoxForceLocalSettings.Checked)
+            {
+                ts.LlmSubtransForceLocalSettings = checkBoxForceLocalSettings.Checked;
+                var localSettingsFile = Path.Combine(Configuration.BaseDirectory, ".localsettings");
+                try
+                {
+                    if (ts.LlmSubtransForceLocalSettings)
+                    {
+                        if (!File.Exists(localSettingsFile))
+                        {
+                            File.WriteAllText(localSettingsFile, "Force local settings");
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(localSettingsFile))
+                        {
+                            File.Delete(localSettingsFile);
+                        }
+                    }
+                    MessageBox.Show("Settings folder changed. Please restart Subtitle Edit for changes to take effect.", "Restart required", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to change settings folder: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
 
             Nikse.SubtitleEdit.Core.Common.Configuration.Settings.Save();
             DialogResult = DialogResult.OK;
@@ -182,38 +213,6 @@ namespace Nikse.SubtitleEdit.Forms.Translate
                 {
                     textBoxTerminologyFile.Text = openFileDialog.FileName;
                 }
-            }
-        }
-
-        private void buttonResetDefaults_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure you want to reset all LLM Subtrans settings to defaults?", "Reset Defaults", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
-                var ts = new Nikse.SubtitleEdit.Core.Settings.ToolsSettings(); // Temporary instance to get hardcoded defaults
-                textBoxUrl.Text = ts.LlmSubtransUrl;
-                textBoxEndpoint.Text = ts.LlmSubtransEndpoint;
-                textBoxModel.Text = ts.LlmSubtransModel;
-                numericUpDownTemperature.Value = (decimal)ts.LlmSubtransTemperature;
-                numericUpDownRateLimit.Value = ts.LlmSubtransRateLimit;
-                numericUpDownMinBatch.Value = ts.LlmSubtransMinBatchSize;
-                numericUpDownMaxBatch.Value = ts.LlmSubtransMaxBatchSize;
-                numericUpDownMaxRetries.Value = ts.LlmSubtransMaxRetries;
-                numericUpDownBackoff.Value = ts.LlmSubtransBackoffTime;
-                numericUpDownSceneThreshold.Value = ts.LlmSubtransSceneThreshold;
-                numericUpDownBatchThreshold.Value = ts.LlmSubtransBatchThreshold;
-                numericUpDownMaxSummaries.Value = ts.LlmSubtransMaxSummaries;
-                checkBoxProject.Checked = ts.LlmSubtransProject;
-                checkBoxChat.Checked = ts.LlmSubtransChat;
-                checkBoxPostProcess.Checked = ts.LlmSubtransPostProcess;
-                checkBoxAuto.Checked = ts.LlmSubtransAuto;
-                checkBoxSystemMessages.Checked = ts.LlmSubtransSystemMessages;
-                checkBoxBuildTerminologyMap.Checked = ts.LlmSubtransBuildTerminologyMap;
-                checkBoxIncludeOriginal.Checked = ts.LlmSubtransIncludeOriginal;
-                checkBoxAddRtlMarkers.Checked = ts.LlmSubtransAddRtlMarkers;
-                textBoxInstructionFile.Text = string.Empty;
-                textBoxNamesFile.Text = string.Empty;
-                textBoxTerminologyFile.Text = string.Empty;
-                textBoxSubstitution.Text = string.Empty;
             }
         }
     }

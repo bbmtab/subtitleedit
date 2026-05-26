@@ -57,6 +57,8 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.labelTerminologyFile = new System.Windows.Forms.Label();
             this.textBoxTerminologyFile = new System.Windows.Forms.TextBox();
             this.buttonBrowseTerminology = new System.Windows.Forms.Button();
+            this.labelNamesHint = new System.Windows.Forms.Label();
+            this.labelTerminologyHint = new System.Windows.Forms.Label();
             this.labelSubstitution = new System.Windows.Forms.Label();
             this.textBoxSubstitution = new System.Windows.Forms.TextBox();
             this.checkBoxProject = new System.Windows.Forms.CheckBox();
@@ -70,11 +72,15 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonResetDefaults = new System.Windows.Forms.Button();
+            this.checkBoxForceLocalSettings = new System.Windows.Forms.CheckBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPagePaths = new System.Windows.Forms.TabPage();
             this.tabPageServer = new System.Windows.Forms.TabPage();
             this.tabPageAdvanced = new System.Windows.Forms.TabPage();
             this.tabPageFiles = new System.Windows.Forms.TabPage();
+            this.tabPageSettings = new System.Windows.Forms.TabPage();
+            this.labelSettingsFolderInfo = new System.Windows.Forms.Label();
+            this.labelSettingsFolderCurrent = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTemperature)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRateLimit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMinBatch)).BeginInit();
@@ -89,6 +95,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageServer.SuspendLayout();
             this.tabPageAdvanced.SuspendLayout();
             this.tabPageFiles.SuspendLayout();
+            this.tabPageSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // labelPythonPath
@@ -450,10 +457,30 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.buttonBrowseTerminology.UseVisualStyleBackColor = true;
             this.buttonBrowseTerminology.Click += new System.EventHandler(this.buttonBrowseTerminology_Click);
             // 
+            // labelNamesHint
+            // 
+            this.labelNamesHint.AutoSize = true;
+            this.labelNamesHint.ForeColor = System.Drawing.Color.Gray;
+            this.labelNamesHint.Location = new System.Drawing.Point(9, 98);
+            this.labelNamesHint.Name = "labelNamesHint";
+            this.labelNamesHint.Size = new System.Drawing.Size(188, 13);
+            this.labelNamesHint.TabIndex = 28;
+            this.labelNamesHint.Text = "Default: subtitle folder + \"names.txt\"";
+            // 
+            // labelTerminologyHint
+            // 
+            this.labelTerminologyHint.AutoSize = true;
+            this.labelTerminologyHint.ForeColor = System.Drawing.Color.Gray;
+            this.labelTerminologyHint.Location = new System.Drawing.Point(9, 147);
+            this.labelTerminologyHint.Name = "labelTerminologyHint";
+            this.labelTerminologyHint.Size = new System.Drawing.Size(181, 13);
+            this.labelTerminologyHint.TabIndex = 29;
+            this.labelTerminologyHint.Text = "Default: subtitle folder + \"term.txt\"";
+            // 
             // labelSubstitution
             // 
             this.labelSubstitution.AutoSize = true;
-            this.labelSubstitution.Location = new System.Drawing.Point(6, 160);
+            this.labelSubstitution.Location = new System.Drawing.Point(6, 175);
             this.labelSubstitution.Name = "labelSubstitution";
             this.labelSubstitution.Size = new System.Drawing.Size(65, 13);
             this.labelSubstitution.TabIndex = 9;
@@ -461,7 +488,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // 
             // textBoxSubstitution
             // 
-            this.textBoxSubstitution.Location = new System.Drawing.Point(9, 176);
+            this.textBoxSubstitution.Location = new System.Drawing.Point(9, 191);
             this.textBoxSubstitution.Name = "textBoxSubstitution";
             this.textBoxSubstitution.Size = new System.Drawing.Size(431, 20);
             this.textBoxSubstitution.TabIndex = 10;
@@ -469,7 +496,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxProject
             // 
             this.checkBoxProject.AutoSize = true;
-            this.checkBoxProject.Location = new System.Drawing.Point(9, 210);
+            this.checkBoxProject.Location = new System.Drawing.Point(9, 215);
             this.checkBoxProject.Name = "checkBoxProject";
             this.checkBoxProject.Size = new System.Drawing.Size(59, 17);
             this.checkBoxProject.TabIndex = 18;
@@ -479,7 +506,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxBuildTerminologyMap
             // 
             this.checkBoxBuildTerminologyMap.AutoSize = true;
-            this.checkBoxBuildTerminologyMap.Location = new System.Drawing.Point(103, 210);
+            this.checkBoxBuildTerminologyMap.Location = new System.Drawing.Point(103, 215);
             this.checkBoxBuildTerminologyMap.Name = "checkBoxBuildTerminologyMap";
             this.checkBoxBuildTerminologyMap.Size = new System.Drawing.Size(131, 17);
             this.checkBoxBuildTerminologyMap.TabIndex = 19;
@@ -489,7 +516,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxPostProcess
             // 
             this.checkBoxPostProcess.AutoSize = true;
-            this.checkBoxPostProcess.Location = new System.Drawing.Point(240, 210);
+            this.checkBoxPostProcess.Location = new System.Drawing.Point(240, 215);
             this.checkBoxPostProcess.Name = "checkBoxPostProcess";
             this.checkBoxPostProcess.Size = new System.Drawing.Size(89, 17);
             this.checkBoxPostProcess.TabIndex = 20;
@@ -499,7 +526,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxChat
             // 
             this.checkBoxChat.AutoSize = true;
-            this.checkBoxChat.Location = new System.Drawing.Point(340, 210);
+            this.checkBoxChat.Location = new System.Drawing.Point(340, 215);
             this.checkBoxChat.Name = "checkBoxChat";
             this.checkBoxChat.Size = new System.Drawing.Size(48, 17);
             this.checkBoxChat.TabIndex = 21;
@@ -509,7 +536,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxSystemMessages
             // 
             this.checkBoxSystemMessages.AutoSize = true;
-            this.checkBoxSystemMessages.Location = new System.Drawing.Point(9, 233);
+            this.checkBoxSystemMessages.Location = new System.Drawing.Point(9, 238);
             this.checkBoxSystemMessages.Name = "checkBoxSystemMessages";
             this.checkBoxSystemMessages.Size = new System.Drawing.Size(111, 17);
             this.checkBoxSystemMessages.TabIndex = 22;
@@ -519,7 +546,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxAuto
             // 
             this.checkBoxAuto.AutoSize = true;
-            this.checkBoxAuto.Location = new System.Drawing.Point(130, 233);
+            this.checkBoxAuto.Location = new System.Drawing.Point(130, 238);
             this.checkBoxAuto.Name = "checkBoxAuto";
             this.checkBoxAuto.Size = new System.Drawing.Size(48, 17);
             this.checkBoxAuto.TabIndex = 23;
@@ -529,7 +556,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxIncludeOriginal
             // 
             this.checkBoxIncludeOriginal.AutoSize = true;
-            this.checkBoxIncludeOriginal.Location = new System.Drawing.Point(190, 233);
+            this.checkBoxIncludeOriginal.Location = new System.Drawing.Point(190, 238);
             this.checkBoxIncludeOriginal.Name = "checkBoxIncludeOriginal";
             this.checkBoxIncludeOriginal.Size = new System.Drawing.Size(100, 17);
             this.checkBoxIncludeOriginal.TabIndex = 24;
@@ -539,7 +566,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             // checkBoxAddRtlMarkers
             // 
             this.checkBoxAddRtlMarkers.AutoSize = true;
-            this.checkBoxAddRtlMarkers.Location = new System.Drawing.Point(300, 233);
+            this.checkBoxAddRtlMarkers.Location = new System.Drawing.Point(300, 238);
             this.checkBoxAddRtlMarkers.Name = "checkBoxAddRtlMarkers";
             this.checkBoxAddRtlMarkers.Size = new System.Drawing.Size(103, 17);
             this.checkBoxAddRtlMarkers.TabIndex = 25;
@@ -566,12 +593,51 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.buttonCancel.UseVisualStyleBackColor = true;
             this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
             // 
+            // buttonResetDefaults
+            // 
+            this.buttonResetDefaults.Location = new System.Drawing.Point(12, 310);
+            this.buttonResetDefaults.Name = "buttonResetDefaults";
+            this.buttonResetDefaults.Size = new System.Drawing.Size(100, 23);
+            this.buttonResetDefaults.TabIndex = 29;
+            this.buttonResetDefaults.Text = "Reset defaults";
+            this.buttonResetDefaults.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxForceLocalSettings
+            // 
+            this.checkBoxForceLocalSettings.AutoSize = true;
+            this.checkBoxForceLocalSettings.Location = new System.Drawing.Point(9, 70);
+            this.checkBoxForceLocalSettings.Name = "checkBoxForceLocalSettings";
+            this.checkBoxForceLocalSettings.Size = new System.Drawing.Size(185, 17);
+            this.checkBoxForceLocalSettings.TabIndex = 0;
+            this.checkBoxForceLocalSettings.Text = "Use local settings (Portable mode)";
+            this.checkBoxForceLocalSettings.UseVisualStyleBackColor = true;
+            // 
+            // labelSettingsFolderInfo
+            // 
+            this.labelSettingsFolderInfo.AutoSize = true;
+            this.labelSettingsFolderInfo.Location = new System.Drawing.Point(6, 13);
+            this.labelSettingsFolderInfo.Name = "labelSettingsFolderInfo";
+            this.labelSettingsFolderInfo.Size = new System.Drawing.Size(350, 13);
+            this.labelSettingsFolderInfo.TabIndex = 1;
+            this.labelSettingsFolderInfo.Text = "Choose where to store Settings.xml and other configuration files.";
+            // 
+            // labelSettingsFolderCurrent
+            // 
+            this.labelSettingsFolderCurrent.AutoSize = true;
+            this.labelSettingsFolderCurrent.ForeColor = System.Drawing.Color.Gray;
+            this.labelSettingsFolderCurrent.Location = new System.Drawing.Point(6, 40);
+            this.labelSettingsFolderCurrent.Name = "labelSettingsFolderCurrent";
+            this.labelSettingsFolderCurrent.Size = new System.Drawing.Size(100, 13);
+            this.labelSettingsFolderCurrent.TabIndex = 2;
+            this.labelSettingsFolderCurrent.Text = "Current folder: ...";
+            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPagePaths);
             this.tabControl1.Controls.Add(this.tabPageServer);
             this.tabControl1.Controls.Add(this.tabPageFiles);
             this.tabControl1.Controls.Add(this.tabPageAdvanced);
+            this.tabControl1.Controls.Add(this.tabPageSettings);
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -656,9 +722,11 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageFiles.Controls.Add(this.labelNamesFile);
             this.tabPageFiles.Controls.Add(this.textBoxNamesFile);
             this.tabPageFiles.Controls.Add(this.buttonBrowseNames);
+            this.tabPageFiles.Controls.Add(this.labelNamesHint);
             this.tabPageFiles.Controls.Add(this.labelTerminologyFile);
             this.tabPageFiles.Controls.Add(this.textBoxTerminologyFile);
             this.tabPageFiles.Controls.Add(this.buttonBrowseTerminology);
+            this.tabPageFiles.Controls.Add(this.labelTerminologyHint);
             this.tabPageFiles.Controls.Add(this.labelSubstitution);
             this.tabPageFiles.Controls.Add(this.textBoxSubstitution);
             this.tabPageFiles.Location = new System.Drawing.Point(4, 22);
@@ -668,6 +736,18 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageFiles.Text = "Files";
             this.tabPageFiles.UseVisualStyleBackColor = true;
             // 
+            // tabPageSettings
+            // 
+            this.tabPageSettings.Controls.Add(this.labelSettingsFolderInfo);
+            this.tabPageSettings.Controls.Add(this.labelSettingsFolderCurrent);
+            this.tabPageSettings.Controls.Add(this.checkBoxForceLocalSettings);
+            this.tabPageSettings.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSettings.Name = "tabPageSettings";
+            this.tabPageSettings.Size = new System.Drawing.Size(452, 264);
+            this.tabPageSettings.TabIndex = 4;
+            this.tabPageSettings.Text = "Settings folder";
+            this.tabPageSettings.UseVisualStyleBackColor = true;
+            // 
             // LlmSubtransSettings
             // 
             this.AcceptButton = this.buttonOK;
@@ -675,6 +755,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(484, 345);
+            this.Controls.Add(this.buttonResetDefaults);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonOK);
@@ -703,6 +784,8 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             this.tabPageAdvanced.PerformLayout();
             this.tabPageFiles.ResumeLayout(false);
             this.tabPageFiles.PerformLayout();
+            this.tabPageSettings.ResumeLayout(false);
+            this.tabPageSettings.PerformLayout();
             this.ResumeLayout(false);
         }
 
@@ -747,6 +830,8 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private System.Windows.Forms.Label labelTerminologyFile;
         private System.Windows.Forms.TextBox textBoxTerminologyFile;
         private System.Windows.Forms.Button buttonBrowseTerminology;
+        private System.Windows.Forms.Label labelNamesHint;
+        private System.Windows.Forms.Label labelTerminologyHint;
         private System.Windows.Forms.Label labelSubstitution;
         private System.Windows.Forms.TextBox textBoxSubstitution;
         private System.Windows.Forms.CheckBox checkBoxProject;
@@ -760,11 +845,15 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonResetDefaults;
+        private System.Windows.Forms.CheckBox checkBoxForceLocalSettings;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPagePaths;
         private System.Windows.Forms.TabPage tabPageServer;
         private System.Windows.Forms.TabPage tabPageAdvanced;
         private System.Windows.Forms.TabPage tabPageFiles;
+        private System.Windows.Forms.TabPage tabPageSettings;
+        private System.Windows.Forms.Label labelSettingsFolderInfo;
+        private System.Windows.Forms.Label labelSettingsFolderCurrent;
         private System.Windows.Forms.Button buttonBrowseFolder;
     }
 }

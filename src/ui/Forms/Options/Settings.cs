@@ -3794,6 +3794,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             {
                 listViewFileTypeAssociations.Visible = false;
                 buttonUpdateFileTypeAssociations.Visible = false;
+                labelUpdateFileTypeAssociationsStatus.Text = "Warning: 'Icons' folder missing! Portable version needs 'Icons' folder for file associations.";
                 return;
             }
 
