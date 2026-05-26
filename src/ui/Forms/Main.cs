@@ -11805,6 +11805,16 @@ namespace Nikse.SubtitleEdit.Forms
                 SurroundWithTag(Configuration.Settings.Tools.MusicSymbol, Configuration.Settings.Tools.MusicSymbol, selectedTextOnly: true);
                 e.SuppressKeyPress = true;
             }
+            else if (e.KeyData == _shortcuts.MainListViewToggleSquareBrackets)
+            {
+                SurroundWithTag("[", "]", selectedTextOnly: true);
+                e.SuppressKeyPress = true;
+            }
+            else if (e.KeyData == _shortcuts.MainListViewToggleParentheses)
+            {
+                SurroundWithTag("(", ")", selectedTextOnly: true);
+                e.SuppressKeyPress = true;
+            }
             else if (e.KeyData == _shortcuts.MainInsertBefore)
             {
                 InsertBefore();
@@ -32183,12 +32193,12 @@ namespace Nikse.SubtitleEdit.Forms
 
         private void ToolStripMenuItemSurroundWithSquareBracketsClick(object sender, EventArgs e)
         {
-            SurroundWithTag("[/]", "[/]");
+            SurroundWithTag("[", "]");
         }
 
         private void ToolStripMenuItemSurroundWithParenthesesClick(object sender, EventArgs e)
         {
-            SurroundWithTag("(/)", "(/)");
+            SurroundWithTag("(", ")");
         }
 
         private void ToggleCustomTags(string tagsSetting)
