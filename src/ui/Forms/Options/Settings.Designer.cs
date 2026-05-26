@@ -7655,8 +7655,6 @@ namespace Nikse.SubtitleEdit.Forms.Options
         private Controls.NikseComboBox nikseComboBoxChatGptModel;
         private System.Windows.Forms.Label labelShortcutsFilter;
         private Controls.NikseComboBox nikseComboBoxShortcutsFilter;
-        private System.Windows.Forms.Panel panelStorage;
-        private System.Windows.Forms.GroupBox groupBoxStorage;
         private System.Windows.Forms.Label labelStorageInfo;
         private System.Windows.Forms.Label labelTBOpenVideo;
         private System.Windows.Forms.PictureBox pictureBoxTBOpenVideo;
