@@ -87,11 +87,23 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     return "Error: " + (Error ?? "Translation failed.");
                 }
 
-                // We ignore the 'text' passed by SE and rely on our pre-mapped sequential cache.
-                // SE's AutoTranslate form iterates paragraph by paragraph in the same order
-                // as our _originalSubtitle passed in the constructor.
-                if (_currentBatchIndex < _sequentialCache.Count)
+                // Subtitle Edit might merge lines or skip indices.
+                // We find the best match for the requested 'text' in our original subtitle
+                // to determine the time range, then use that to find the translation.
+                var foundIndex = FindOriginalIndex(text, _currentBatchIndex);
+                if (foundIndex >= 0)
                 {
+                    var original = _originalSubtitle.Paragraphs[foundIndex];
+                    var match = GetBestTimeMatch(original, _cachedSubtitle.Paragraphs);
+                    _currentBatchIndex = foundIndex + 1;
+                    if (match != null)
+                    {
+                        return match.Text;
+                    }
+                }
+                else if (_currentBatchIndex < _sequentialCache.Count)
+                {
+                    // Fallback to sequential if text matching fails
                     var result = _sequentialCache[_currentBatchIndex];
                     _currentBatchIndex++;
                     return result;
@@ -103,6 +115,26 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 _semaphore.Release();
             }
+        }
+
+        private int FindOriginalIndex(string text, int startIndex)
+        {
+            if (_originalSubtitle == null) return -1;
+            
+            var f = new Formatting();
+            // Search ahead first
+            for (int i = startIndex; i < _originalSubtitle.Paragraphs.Count; i++)
+            {
+                if (f.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, "") == text)
+                    return i;
+            }
+            // Search from beginning if not found
+            for (int i = 0; i < startIndex; i++)
+            {
+                if (f.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, "") == text)
+                    return i;
+            }
+            return -1;
         }
 
         private async Task TranslateWholeSubtitle(string sourceLanguageCode, string targetLanguageCode, CancellationToken cancellationToken)
@@ -146,24 +178,24 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var endpoint = Configuration.Settings.Tools.LlmSubtransEndpoint?.TrimStart('/');
             
             var args = new StringBuilder();
-            args.Append($"\"{scriptPath}\" ");
-            args.Append($"\"{tempInput}\" ");
+            args.Append($"'{scriptPath}' ");
+            args.Append($"'{tempInput}' ");
             if (Configuration.Settings.Tools.LlmSubtransProject) args.Append("--project ");
-            args.Append($"-l \"{targetLanguageCode}\" ");
-            args.Append($"-o \"{tempOutput}\" ");
-            if (!string.IsNullOrEmpty(baseUrl)) args.Append($"-s \"{baseUrl}\" ");
-            if (!string.IsNullOrEmpty(endpoint)) args.Append($"-e \"/{endpoint}\" ");
-            args.Append($"-k \"{Configuration.Settings.Tools.LlmSubtransApiKey}\" ");
-            args.Append($"-m \"{Configuration.Settings.Tools.LlmSubtransModel}\" ");
-            args.Append($"--temperature \"{Configuration.Settings.Tools.LlmSubtransTemperature.ToString(System.Globalization.CultureInfo.InvariantCulture)}\" ");
-            args.Append($"--ratelimit \"{Configuration.Settings.Tools.LlmSubtransRateLimit}\" ");
-            args.Append($"--minbatchsize \"{Configuration.Settings.Tools.LlmSubtransMinBatchSize}\" ");
-            args.Append($"--maxbatchsize \"{Configuration.Settings.Tools.LlmSubtransMaxBatchSize}\" ");
-            args.Append($"--maxretries \"{Configuration.Settings.Tools.LlmSubtransMaxRetries}\" ");
-            args.Append($"--backofftime \"{Configuration.Settings.Tools.LlmSubtransBackoffTime}\" ");
-            args.Append($"--scenethreshold \"{Configuration.Settings.Tools.LlmSubtransSceneThreshold}\" ");
-            args.Append($"--batchthreshold \"{Configuration.Settings.Tools.LlmSubtransBatchThreshold}\" ");
-            args.Append($"--maxsummaries \"{Configuration.Settings.Tools.LlmSubtransMaxSummaries}\" ");
+            args.Append($"-l '{targetLanguageCode}' ");
+            args.Append($"-o '{tempOutput}' ");
+            if (!string.IsNullOrEmpty(baseUrl)) args.Append($"-s '{baseUrl}' ");
+            if (!string.IsNullOrEmpty(endpoint)) args.Append($"-e '/{endpoint}' ");
+            args.Append($"-k '{Configuration.Settings.Tools.LlmSubtransApiKey}' ");
+            args.Append($"-m '{Configuration.Settings.Tools.LlmSubtransModel}' ");
+            args.Append($"--temperature {Configuration.Settings.Tools.LlmSubtransTemperature.ToString(System.Globalization.CultureInfo.InvariantCulture)} ");
+            args.Append($"--ratelimit {Configuration.Settings.Tools.LlmSubtransRateLimit} ");
+            args.Append($"--minbatchsize {Configuration.Settings.Tools.LlmSubtransMinBatchSize} ");
+            args.Append($"--maxbatchsize {Configuration.Settings.Tools.LlmSubtransMaxBatchSize} ");
+            args.Append($"--maxretries {Configuration.Settings.Tools.LlmSubtransMaxRetries} ");
+            args.Append($"--backofftime {Configuration.Settings.Tools.LlmSubtransBackoffTime} ");
+            args.Append($"--scenethreshold {Configuration.Settings.Tools.LlmSubtransSceneThreshold} ");
+            args.Append($"--batchthreshold {Configuration.Settings.Tools.LlmSubtransBatchThreshold} ");
+            args.Append($"--maxsummaries {Configuration.Settings.Tools.LlmSubtransMaxSummaries} ");
             if (Configuration.Settings.Tools.LlmSubtransChat || (endpoint != null && endpoint.Contains("chat"))) args.Append("--chat ");
             if (Configuration.Settings.Tools.LlmSubtransPostProcess) args.Append("--postprocess ");
             if (Configuration.Settings.Tools.LlmSubtransSystemMessages) args.Append("--systemmessages ");
@@ -173,7 +205,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (Configuration.Settings.Tools.LlmSubtransBuildTerminologyMap) args.Append("--build-terminology-map ");
 
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
-                args.Append($"--instructionfile \"{Configuration.Settings.Tools.LlmSubtransInstructionFile}\" ");
+                args.Append($"--instructionfile '{Configuration.Settings.Tools.LlmSubtransInstructionFile}' ");
 
             var namesFile = Configuration.Settings.Tools.LlmSubtransNamesFile;
             if (string.IsNullOrEmpty(namesFile) && !string.IsNullOrEmpty(subtitleFolder))
@@ -181,7 +213,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 var defaultNames = Path.Combine(subtitleFolder, "names.txt");
                 if (File.Exists(defaultNames)) namesFile = defaultNames;
             }
-            if (!string.IsNullOrEmpty(namesFile)) args.Append($"--names \"{namesFile}\" ");
+            if (!string.IsNullOrEmpty(namesFile)) args.Append($"--names '{namesFile}' ");
 
             var termFile = Configuration.Settings.Tools.LlmSubtransTerminologyFile;
             if (string.IsNullOrEmpty(termFile) && !string.IsNullOrEmpty(subtitleFolder))
@@ -189,15 +221,17 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 var defaultTerm = Path.Combine(subtitleFolder, "term.txt");
                 if (File.Exists(defaultTerm)) termFile = defaultTerm;
             }
-            if (!string.IsNullOrEmpty(termFile)) args.Append($"--terminology-file \"{termFile}\" ");
+            if (!string.IsNullOrEmpty(termFile)) args.Append($"--terminology-file '{termFile}' ");
 
             var workingDir = Path.GetDirectoryName(scriptPath);
             if (workingDir != null && workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase)) workingDir = Path.GetDirectoryName(workingDir);
 
+            // Use powershell with Tee-Object to show live output AND log to file
+            var psCommand = $"& {{ & '{pythonPath}' {args} 2>&1 | Tee-Object -FilePath '{logFile}' }}";
             var processStartInfo = new ProcessStartInfo
             {
-                FileName = pythonPath,
-                Arguments = args.ToString(),
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{psCommand}\"",
                 UseShellExecute = true, 
                 CreateNoWindow = false,
                 WorkingDirectory = workingDir
@@ -210,7 +244,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     process.StartInfo = processStartInfo;
                     if (!process.Start())
                     {
-                        Error = "Failed to start Python.";
+                        Error = "Failed to start PowerShell.";
                         return;
                     }
 
@@ -245,23 +279,11 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                             catch { }
                         }
 
-                        // Sync Mapping Logic
-                        if (_cachedSubtitle.Paragraphs.Count == _originalSubtitle.Paragraphs.Count)
+                        // Populate sequential cache as fallback
+                        _sequentialCache.Clear();
+                        foreach (var p in _cachedSubtitle.Paragraphs)
                         {
-                            // Perfect match - use index-based mapping to avoid any timestamp jitter issues
-                            foreach (var p in _cachedSubtitle.Paragraphs)
-                            {
-                                _sequentialCache.Add(p.Text);
-                            }
-                        }
-                        else
-                        {
-                            // Count mismatch - use robust time-overlap mapping
-                            foreach (var original in _originalSubtitle.Paragraphs)
-                            {
-                                var match = GetBestTimeMatch(original, _cachedSubtitle.Paragraphs);
-                                _sequentialCache.Add(match != null ? match.Text : original.Text);
-                            }
+                            _sequentialCache.Add(p.Text);
                         }
 
                         _lastSourceLanguage = sourceLanguageCode;
