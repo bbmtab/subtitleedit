@@ -218,32 +218,49 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                     if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
-                        // Sync project file to subtitle folder
-                        if (File.Exists(tempProjectFile))
-                        {
-                            try 
-                            { 
-                                if (File.Exists(finalProjectFile)) File.Delete(finalProjectFile);
-                                File.Move(tempProjectFile, finalProjectFile); 
-                            } catch { }
-                        }
-
                         _cachedSubtitle = new Subtitle();
                         var linesFromFile = File.ReadAllLines(tempOutput, Encoding.UTF8).ToList();
-                        srt.LoadSubtitle(_cachedSubtitle, linesFromFile, tempOutput);
-                        
-                        // Robust Time-Based Mapping
-                        // We map each original paragraph to the closest result based on time
-                        foreach (var original in _originalSubtitle.Paragraphs)
+
+                        // Basic cleanup of LLM-induced SRT noise
+                        var cleanLines = new List<string>();
+                        bool srtStarted = false;
+                        foreach (var line in linesFromFile)
                         {
-                            var match = GetBestTimeMatch(original, _cachedSubtitle.Paragraphs);
-                            if (match != null)
+                            if (!srtStarted && !System.Text.RegularExpressions.Regex.IsMatch(line, @"^\d+$"))
+                                continue;
+                            srtStarted = true;
+                            cleanLines.Add(line);
+                        }
+
+                        srt.LoadSubtitle(_cachedSubtitle, cleanLines, tempOutput);
+
+                        // Handle project file synchronization
+                        if (File.Exists(tempProjectFile))
+                        {
+                            try
                             {
-                                _sequentialCache.Add(match.Text);
+                                if (File.Exists(finalProjectFile)) File.Delete(finalProjectFile);
+                                File.Move(tempProjectFile, finalProjectFile);
                             }
-                            else
+                            catch { }
+                        }
+
+                        // Sync Mapping Logic
+                        if (_cachedSubtitle.Paragraphs.Count == _originalSubtitle.Paragraphs.Count)
+                        {
+                            // Perfect match - use index-based mapping to avoid any timestamp jitter issues
+                            foreach (var p in _cachedSubtitle.Paragraphs)
                             {
-                                _sequentialCache.Add(original.Text); // Fallback to original
+                                _sequentialCache.Add(p.Text);
+                            }
+                        }
+                        else
+                        {
+                            // Count mismatch - use robust time-overlap mapping
+                            foreach (var original in _originalSubtitle.Paragraphs)
+                            {
+                                var match = GetBestTimeMatch(original, _cachedSubtitle.Paragraphs);
+                                _sequentialCache.Add(match != null ? match.Text : original.Text);
                             }
                         }
 
@@ -254,8 +271,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         // Cleanup
                         try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
                         try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
-                    }
-                    else
+                    }                    else
                     {
                         Error = "Python script failed or was interrupted.";
                     }
