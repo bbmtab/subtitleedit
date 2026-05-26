@@ -37499,10 +37499,3 @@ namespace Nikse.SubtitleEdit.Forms
         }
     }
 }
-        RestoreSubtitleListviewIndices();
-                    Cursor = Cursors.Default;
-                }
-            }
-        }
-    }
-}
