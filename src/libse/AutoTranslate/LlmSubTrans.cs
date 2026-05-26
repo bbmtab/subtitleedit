@@ -30,8 +30,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
         private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private int _currentBatchIndex = 0;
-        private Dictionary<string, string> _translationMap;
         private List<string> _sequentialCache;
+        private bool _isFailed = false;
 
         public LlmSubTrans()
         {
@@ -52,8 +52,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         {
             _cachedSubtitle = null;
             _currentBatchIndex = 0;
-            _translationMap = null;
             _sequentialCache = null;
+            _isFailed = false;
         }
 
         public List<TranslationPair> GetSupportedSourceLanguages()
@@ -66,72 +66,41 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             return ChatGptTranslate.ListLanguages();
         }
 
-        private string NormalizeForMatch(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
-            var sb = new StringBuilder();
-            foreach (var c in text)
-            {
-                if (char.IsLetterOrDigit(c))
-                    sb.Append(char.ToLowerInvariant(c));
-            }
-            return sb.ToString();
-        }
-
         public async Task<string> Translate(string text, string sourceLanguageCode, string targetLanguageCode, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken);
             try
             {
+                if (_isFailed)
+                {
+                    return text;
+                }
+
                 if (_cachedSubtitle == null || _lastSourceLanguage != sourceLanguageCode || _lastTargetLanguage != targetLanguageCode)
                 {
                     await TranslateWholeSubtitle(sourceLanguageCode, targetLanguageCode, cancellationToken);
                 }
 
-                if (_cachedSubtitle == null || _translationMap == null)
+                if (_cachedSubtitle == null)
                 {
+                    _isFailed = true;
                     return "Error: " + (Error ?? "Translation failed.");
                 }
 
                 var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 var translatedLines = new List<string>();
-                var logFile = Path.Combine(!string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath(), "llm_subtrans_log.txt");
 
                 foreach (var line in lines)
                 {
-                    var searchLine = line.Trim();
-                    if (string.IsNullOrEmpty(searchLine))
-                    {
-                        translatedLines.Add(string.Empty);
-                        continue;
-                    }
-
-                    // 1. Try dictionary lookup (unformatted text match)
-                    if (_translationMap.TryGetValue(searchLine, out string translated))
-                    {
-                        translatedLines.Add(translated);
-                        continue;
-                    }
-
-                    // 2. Try normalized lookup
-                    var normalized = NormalizeForMatch(searchLine);
-                    if (_translationMap.TryGetValue(normalized, out translated))
-                    {
-                        translatedLines.Add(translated);
-                        continue;
-                    }
-
-                    // 3. Fallback: Sequential access (the most reliable for bulk runs)
+                    // Sequential access is the only reliable way to map LLM results back to SE
                     if (_currentBatchIndex < _sequentialCache.Count)
                     {
                         translatedLines.Add(_sequentialCache[_currentBatchIndex]);
-                        try { File.AppendAllText(logFile, $"\nSYNC: Using index fallback for '{searchLine}' -> '{_sequentialCache[_currentBatchIndex]}'\n"); } catch { }
                         _currentBatchIndex++;
                     }
                     else
                     {
-                        translatedLines.Add(searchLine);
-                        try { File.AppendAllText(logFile, $"\nSYNC FAIL: Out of cache for '{searchLine}'\n"); } catch { }
+                        translatedLines.Add(line);
                     }
                 }
 
@@ -151,14 +120,17 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 return;
             }
 
-            _translationMap = new Dictionary<string, string>();
             _sequentialCache = new List<string>();
             _currentBatchIndex = 0;
 
-            var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
-            var tempInput = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
-            var tempOutput = Path.Combine(Path.GetTempPath(), $"se_llm_out_{uniqueId}.srt");
-            var logFile = Path.Combine(!string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath(), "llm_subtrans_log.txt");
+            var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
+            var sourceBaseName = !string.IsNullOrEmpty(FileName) ? Path.GetFileNameWithoutExtension(FileName) : "new_subtitle";
+            
+            // Stable names to allow resuming
+            var tempInput = Path.Combine(subtitleFolder, $"{sourceBaseName}.llm-tmp.srt");
+            var tempOutput = Path.Combine(subtitleFolder, $"{sourceBaseName}.llm-out.srt");
+            var finalProjectFile = Path.Combine(subtitleFolder, $"{sourceBaseName}.subtrans");
+            var tempProjectFile = Path.Combine(subtitleFolder, $"{sourceBaseName}.llm-tmp.subtrans");
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
 
@@ -208,7 +180,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
                 args.Append($"--instructionfile \"{Configuration.Settings.Tools.LlmSubtransInstructionFile}\" ");
 
-            var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : string.Empty;
             var namesFile = Configuration.Settings.Tools.LlmSubtransNamesFile;
             if (string.IsNullOrEmpty(namesFile) && !string.IsNullOrEmpty(subtitleFolder))
             {
@@ -232,74 +203,62 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 FileName = pythonPath,
                 Arguments = args.ToString(),
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
+                UseShellExecute = true, // Open in a real terminal window
+                CreateNoWindow = false,
                 WorkingDirectory = workingDir
             };
-
-            var log = new StringBuilder();
-            log.AppendLine("--- LLM Subtrans Log ---");
-            log.AppendLine("Time: " + DateTime.Now.ToString());
-            log.AppendLine("Command: " + pythonPath + " " + args);
 
             try
             {
                 using (var process = new Process())
                 {
                     process.StartInfo = processStartInfo;
-                    process.ErrorDataReceived += (s, e) => { if (e.Data != null) log.AppendLine("ERR: " + e.Data); };
-                    process.OutputDataReceived += (s, e) => { if (e.Data != null) log.AppendLine("OUT: " + e.Data); };
-
                     if (!process.Start())
                     {
                         Error = "Failed to start Python.";
                         return;
                     }
 
-                    process.BeginErrorReadLine();
-                    process.BeginOutputReadLine();
-
                     await Task.Run(() => process.WaitForExit(), cancellationToken);
-                    log.AppendLine("Exit Code: " + process.ExitCode);
-                    File.WriteAllText(logFile, log.ToString());
 
                     if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
+                        // Handle project file renaming (llm-subtrans creates it based on input filename)
+                        if (File.Exists(tempProjectFile))
+                        {
+                            if (File.Exists(finalProjectFile)) File.Delete(finalProjectFile);
+                            File.Move(tempProjectFile, finalProjectFile);
+                        }
+
                         _cachedSubtitle = new Subtitle();
                         var linesFromFile = File.ReadAllLines(tempOutput, Encoding.UTF8).ToList();
                         srt.LoadSubtitle(_cachedSubtitle, linesFromFile, tempOutput);
                         
-                        var formatting = new Formatting();
+                        // Populate sequential cache, ensuring it matches original count exactly
                         for (int i = 0; i < _originalSubtitle.Paragraphs.Count; i++)
                         {
                             if (i < _cachedSubtitle.Paragraphs.Count)
                             {
-                                var originalText = _originalSubtitle.Paragraphs[i].Text;
-                                var translatedText = _cachedSubtitle.Paragraphs[i].Text;
-                                
-                                var unformattedOrig = formatting.SetTagsAndReturnTrimmed(originalText, sourceLanguageCode).Trim();
-                                var unformattedTrans = formatting.SetTagsAndReturnTrimmed(translatedText, targetLanguageCode).Trim();
-                                
-                                if (!string.IsNullOrEmpty(unformattedOrig) && !_translationMap.ContainsKey(unformattedOrig))
-                                    _translationMap.Add(unformattedOrig, unformattedTrans);
-                                
-                                var normalizedOrig = NormalizeForMatch(unformattedOrig);
-                                if (!string.IsNullOrEmpty(normalizedOrig) && !_translationMap.ContainsKey(normalizedOrig))
-                                    _translationMap.Add(normalizedOrig, unformattedTrans);
-
-                                _sequentialCache.Add(unformattedTrans);
+                                _sequentialCache.Add(_cachedSubtitle.Paragraphs[i].Text);
+                            }
+                            else
+                            {
+                                // If LLM returned fewer lines, fallback to original or empty
+                                _sequentialCache.Add(_originalSubtitle.Paragraphs[i].Text);
                             }
                         }
 
                         _lastSourceLanguage = sourceLanguageCode;
                         _lastTargetLanguage = targetLanguageCode;
                         _currentBatchIndex = 0;
+
+                        // Cleanup temp files
+                        try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
+                        try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
                     }
                     else
                     {
-                        Error = "Python script failed. See log: " + logFile;
+                        Error = "Python script failed or was interrupted.";
                     }
                 }
             }
