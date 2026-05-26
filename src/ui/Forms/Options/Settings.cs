@@ -36,6 +36,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
         private const int AppearanceSection = 9;
         private const int NetworkSection = 10;
         private const int FileTypeAssociationSection = 11;
+        private const int StorageSection = 12;
 
         private string _oldVlcLocation;
         private string _oldVlcLocationRelative;
@@ -146,7 +147,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
                 "Toolbar",
                 "Font",
                 "Network",
-                "File type associations"});
+                "File type associations",
+                "Storage"});
 
             Init();
             _loading = false;
@@ -1050,7 +1052,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             }
 
             checkBoxCheckForUpdates.Checked = gs.CheckForUpdates;
-            checkBoxPortableMode.Checked = gs.ForceLocalSettings;
+            checkBoxPortableMode.Checked = File.Exists(Path.Combine(Configuration.BaseDirectory, ".localsettings"));
             checkBoxAutoSave.Checked = gs.AutoSave;
 
             comboBoxSpellChecker.SelectedIndex = gs.SpellChecker.Contains("word", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
@@ -2272,6 +2274,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
                         {
                             File.WriteAllText(localSettingsFile, "Force local settings");
                         }
+                        // Save current settings to the new local path as well
+                        Configuration.Settings.Save(Path.Combine(Configuration.BaseDirectory, Configuration.SettingsFileName));
                     }
                     else
                     {
@@ -2591,6 +2595,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             panelFont.Visible = false;
             panelNetwork.Visible = false;
             panelFileTypeAssociations.Visible = false;
+            panelStorage.Visible = false;
 
             var section = panelGeneral;
             switch (listBoxSection.SelectedIndex)
@@ -2638,6 +2643,9 @@ namespace Nikse.SubtitleEdit.Forms.Options
                         FillFileTypeAssociationsListView();
                     }
 
+                    break;
+                case StorageSection:
+                    section = panelStorage;
                     break;
             }
 

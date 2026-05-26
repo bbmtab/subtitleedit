@@ -457,6 +457,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.toolTipContinuationPreview = new System.Windows.Forms.ToolTip(this.components);
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.panelFileTypeAssociations = new System.Windows.Forms.Panel();
+            this.panelStorage = new System.Windows.Forms.Panel();
+            this.groupBoxStorage = new System.Windows.Forms.GroupBox();
             this.buttonUpdateFileTypeAssociations = new System.Windows.Forms.Button();
             this.listViewFileTypeAssociations = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -6405,6 +6407,47 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.toolTipContinuationPreview.InitialDelay = 500;
             this.toolTipContinuationPreview.ReshowDelay = 100;
             // 
+            // panelStorage
+            // 
+            this.panelStorage.Controls.Add(this.groupBoxStorage);
+            this.panelStorage.Location = new System.Drawing.Point(230, 6);
+            this.panelStorage.Name = "panelStorage";
+            this.panelStorage.Size = new System.Drawing.Size(852, 521);
+            this.panelStorage.TabIndex = 17;
+            this.panelStorage.Visible = false;
+            // 
+            // groupBoxStorage
+            // 
+            this.groupBoxStorage.Controls.Add(this.labelStorageInfo);
+            this.groupBoxStorage.Controls.Add(this.checkBoxPortableMode);
+            this.groupBoxStorage.Location = new System.Drawing.Point(0, 0);
+            this.groupBoxStorage.Name = "groupBoxStorage";
+            this.groupBoxStorage.Size = new System.Drawing.Size(851, 521);
+            this.groupBoxStorage.TabIndex = 0;
+            this.groupBoxStorage.TabStop = false;
+            this.groupBoxStorage.Text = "Storage / Portable mode";
+            // 
+            // labelStorageInfo
+            // 
+            this.labelStorageInfo.AutoSize = true;
+            this.labelStorageInfo.Location = new System.Drawing.Point(20, 60);
+            this.labelStorageInfo.Name = "labelStorageInfo";
+            this.labelStorageInfo.Size = new System.Drawing.Size(400, 45);
+            this.labelStorageInfo.TabIndex = 1;
+            this.labelStorageInfo.Text = "By default, Subtitle Edit stores settings in %appdata%\\Subtitle Edit.\r\n" +
+                                     "Checking this will force the application to use the local folder instead.\r\n" +
+                                     "A restart is required after changing this setting.";
+            // 
+            // checkBoxPortableMode
+            // 
+            this.checkBoxPortableMode.AutoSize = true;
+            this.checkBoxPortableMode.Location = new System.Drawing.Point(20, 30);
+            this.checkBoxPortableMode.Name = "checkBoxPortableMode";
+            this.checkBoxPortableMode.Size = new System.Drawing.Size(185, 17);
+            this.checkBoxPortableMode.TabIndex = 0;
+            this.checkBoxPortableMode.Text = "Use local settings (Portable mode)";
+            this.checkBoxPortableMode.UseVisualStyleBackColor = true;
+            // 
             // panelFileTypeAssociations
             // 
             this.panelFileTypeAssociations.Controls.Add(this.buttonUpdateFileTypeAssociations);
@@ -6985,8 +7028,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.Controls.Add(this.panelFont);
             this.Controls.Add(this.panelSubtitleFormats);
             this.Controls.Add(this.panelWaveform);
-            this.Controls.Add(this.panelFileTypeAssociations);
-            this.Controls.Add(this.panelSyntaxColoring);
+            this.Controls.Add(this.panelStorage);
+            this.Controls.Add(this.panelFileTypeAssociations);            this.Controls.Add(this.panelSyntaxColoring);
             this.Controls.Add(this.listBoxSection);
             this.Controls.Add(this.buttonReset);
             this.Controls.Add(this.labelStatus);
@@ -7405,6 +7448,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
         private Nikse.SubtitleEdit.Controls.NikseTextBox textBoxGoogleTransleApiKey;
         private System.Windows.Forms.LinkLabel linkLabelGoogleTranslateSignUp;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Panel panelStorage;
+        private System.Windows.Forms.GroupBox groupBoxStorage;
         private System.Windows.Forms.CheckBox checkBoxPortableMode;
         private System.Windows.Forms.CheckBox checkBoxAutoSave;
         private System.Windows.Forms.CheckBox checkBoxUseAlwaysToFile;
@@ -7609,6 +7654,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
         private Controls.NikseComboBox nikseComboBoxChatGptModel;
         private System.Windows.Forms.Label labelShortcutsFilter;
         private Controls.NikseComboBox nikseComboBoxShortcutsFilter;
+        private System.Windows.Forms.Panel panelStorage;
+        private System.Windows.Forms.GroupBox groupBoxStorage;
         private System.Windows.Forms.Label labelTBOpenVideo;
         private System.Windows.Forms.PictureBox pictureBoxTBOpenVideo;
         private System.Windows.Forms.CheckBox checkBoxTBOpenVideo;

@@ -36,9 +36,18 @@ jobs:
         if (!(Test-Path $releaseDir)) { $releaseDir = "src\ui\bin\Release" }
         Write-Host "Using release directory: $releaseDir"
         
-        Get-ChildItem $releaseDir -Recurse -Include *.exe, *.dll | ForEach-Object {
-            Write-Host "Found file: $($_.FullName)"
+        # Copy binaries
+        Get-ChildItem $releaseDir -Recurse -Include *.exe, *.dll, *.config | ForEach-Object {
             copy $_.FullName artifacts\
+        }
+        
+        # Copy required data folders
+        $folders = @("Icons", "Dictionaries", "Ocr", "Tesseract302")
+        foreach ($folder in $folders) {
+            if (Test-Path $folder) {
+                Write-Host "Copying folder: $folder"
+                xcopy $folder artifacts\$folder\ /E /I /Y
+            }
         }
         
         dir artifacts
