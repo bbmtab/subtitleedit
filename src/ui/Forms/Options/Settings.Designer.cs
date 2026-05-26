@@ -459,6 +459,7 @@ namespace Nikse.SubtitleEdit.Forms.Options
             this.panelFileTypeAssociations = new System.Windows.Forms.Panel();
             this.panelStorage = new System.Windows.Forms.Panel();
             this.groupBoxStorage = new System.Windows.Forms.GroupBox();
+            this.labelStorageInfo = new System.Windows.Forms.Label();
             this.buttonUpdateFileTypeAssociations = new System.Windows.Forms.Button();
             this.listViewFileTypeAssociations = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -7654,6 +7655,9 @@ namespace Nikse.SubtitleEdit.Forms.Options
         private Controls.NikseComboBox nikseComboBoxChatGptModel;
         private System.Windows.Forms.Label labelShortcutsFilter;
         private Controls.NikseComboBox nikseComboBoxShortcutsFilter;
+        private System.Windows.Forms.Panel panelStorage;
+        private System.Windows.Forms.GroupBox groupBoxStorage;
+        private System.Windows.Forms.Label labelStorageInfo;
         private System.Windows.Forms.Label labelTBOpenVideo;
         private System.Windows.Forms.PictureBox pictureBoxTBOpenVideo;
         private System.Windows.Forms.CheckBox checkBoxTBOpenVideo;
