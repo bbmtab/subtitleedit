@@ -32,6 +32,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         private int _currentBatchIndex = 0;
         private List<string> _sequentialCache;
         private bool _isFailed = false;
+        private HashSet<int> _usedTranslationIndices; // Track used translations to prevent repeats
 
         public LlmSubTrans()
         {
@@ -54,6 +55,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             _currentBatchIndex = 0;
             _sequentialCache = null;
             _isFailed = false;
+            _usedTranslationIndices = new HashSet<int>();
         }
 
         public List<TranslationPair> GetSupportedSourceLanguages()
@@ -87,23 +89,53 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     return "Error: " + (Error ?? "Translation failed.");
                 }
 
-                // Subtitle Edit might merge lines or skip indices.
-                // We find the best match for the requested 'text' in our original subtitle
-                // to determine the time range, then use that to find the translation.
+                // Find the original paragraph index for the requested text
                 var foundIndex = FindOriginalIndex(text, _currentBatchIndex);
+
                 if (foundIndex >= 0)
                 {
-                    var original = _originalSubtitle.Paragraphs[foundIndex];
-                    var match = GetBestTimeMatch(original, _cachedSubtitle.Paragraphs);
-                    _currentBatchIndex = foundIndex + 1;
-                    if (match != null)
+                    // Map original index to translation index
+                    // The llm-subtrans script preserves line count in most cases
+                    var translationIndex = MapOriginalToTranslation(foundIndex);
+
+                    if (translationIndex >= 0 && translationIndex < _sequentialCache.Count)
                     {
-                        return match.Text;
+                        // Prevent repeat: if this translation was already used, try next
+                        if (_usedTranslationIndices.Contains(translationIndex))
+                        {
+                            // Find next unused translation
+                            for (int i = translationIndex + 1; i < _sequentialCache.Count; i++)
+                            {
+                                if (!_usedTranslationIndices.Contains(i))
+                                {
+                                    translationIndex = i;
+                                    break;
+                                }
+                            }
+
+                            // If all subsequent are used, search from beginning
+                            if (_usedTranslationIndices.Contains(translationIndex))
+                            {
+                                for (int i = 0; i < translationIndex; i++)
+                                {
+                                    if (!_usedTranslationIndices.Contains(i))
+                                    {
+                                        translationIndex = i;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        _usedTranslationIndices.Add(translationIndex);
+                        _currentBatchIndex = foundIndex + 1;
+                        return _sequentialCache[translationIndex];
                     }
                 }
-                else if (_currentBatchIndex < _sequentialCache.Count)
+
+                // Fallback: use sequential cache with current batch index
+                if (_currentBatchIndex < _sequentialCache.Count)
                 {
-                    // Fallback to sequential if text matching fails
                     var result = _sequentialCache[_currentBatchIndex];
                     _currentBatchIndex++;
                     return result;
@@ -117,23 +149,66 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             }
         }
 
+        /// <summary>
+        /// Maps original subtitle index to translation index.
+        /// Handles cases where line counts differ due to merges/splits.
+        /// </summary>
+        private int MapOriginalToTranslation(int originalIndex)
+        {
+            if (_originalSubtitle == null || _cachedSubtitle == null)
+                return originalIndex;
+
+            var originalCount = _originalSubtitle.Paragraphs.Count;
+            var translationCount = _cachedSubtitle.Paragraphs.Count;
+
+            // Same count - direct mapping
+            if (originalCount == translationCount)
+                return originalIndex;
+
+            // More translations than originals - likely splits, use ratio
+            if (translationCount > originalCount)
+            {
+                return (int)Math.Round((double)originalIndex * translationCount / originalCount);
+            }
+
+            // Fewer translations than originals - likely merges, use ratio
+            return Math.Min((int)Math.Round((double)originalIndex * translationCount / originalCount), translationCount - 1);
+        }
+
         private int FindOriginalIndex(string text, int startIndex)
         {
             if (_originalSubtitle == null) return -1;
-            
+
             var f = new Formatting();
-            // Search ahead first
+            var normalizedText = f.SetTagsAndReturnTrimmed(text, "");
+
+            // Calculate the "gap" from the previous lookup to detect potential overlaps
+            // If we're being asked for text far ahead, there might be skipped lines
+            var searchAheadThreshold = 10;
+
+            // Search ahead first (most common case: sequential access)
             for (int i = startIndex; i < _originalSubtitle.Paragraphs.Count; i++)
             {
-                if (f.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, "") == text)
+                if (f.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, "") == normalizedText)
                     return i;
             }
-            // Search from beginning if not found
-            for (int i = 0; i < startIndex; i++)
+
+            // Search from beginning if not found (wrap-around for repeated lookups)
+            for (int i = 0; i < startIndex && i < startIndex - searchAheadThreshold; i++)
             {
-                if (f.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, "") == text)
+                if (f.SetTagsAndReturnTrimmed(_originalSubtitle.Paragraphs[i].Text, "") == normalizedText)
                     return i;
             }
+
+            // Fuzzy match: try matching without formatting tags on both sides
+            var textWithoutTags = Utilities.RemoveTags(text);
+            for (int i = Math.Max(0, startIndex - 5); i < Math.Min(startIndex + 5, _originalSubtitle.Paragraphs.Count); i++)
+            {
+                var paraTextWithoutTags = Utilities.RemoveTags(_originalSubtitle.Paragraphs[i].Text);
+                if (textWithoutTags.Equals(paraTextWithoutTags, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+
             return -1;
         }
 
@@ -310,6 +385,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             Paragraph bestMatch = null;
             double bestOverlap = -1;
 
+            // First pass: Calculate overlap for each candidate
             foreach (var p in candidates)
             {
                 // Calculate overlap in milliseconds
@@ -324,10 +400,9 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 }
             }
 
-            // If overlap is too small (e.g. less than 1ms), consider if the target is exactly between candidates
+            // If no positive overlap found, use closest start time
             if (bestOverlap <= 0)
             {
-                // Just find the one with the closest start time
                 double minDiff = double.MaxValue;
                 foreach (var p in candidates)
                 {
@@ -337,6 +412,76 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         minDiff = diff;
                         bestMatch = p;
                     }
+                }
+            }
+
+            return bestMatch;
+        }
+
+        /// <summary>
+        /// Finds the best matching paragraph by considering both time overlap AND text length similarity.
+        /// This handles cases where multiple subtitles have overlapping times (e.g., place name explanations).
+        /// </summary>
+        private Paragraph GetBestTimeMatchWithLengthCheck(Paragraph target, List<Paragraph> candidates, int originalIndex)
+        {
+            // Get candidates that have significant time overlap
+            var overlappingCandidates = new List<(Paragraph paragraph, double overlap)>();
+            foreach (var p in candidates)
+            {
+                double start = Math.Max(target.StartTime.TotalMilliseconds, p.StartTime.TotalMilliseconds);
+                double end = Math.Min(target.EndTime.TotalMilliseconds, p.EndTime.TotalMilliseconds);
+                double overlap = end - start;
+
+                if (overlap > 100) // Only consider overlaps > 100ms
+                {
+                    overlappingCandidates.Add((p, overlap));
+                }
+            }
+
+            if (overlappingCandidates.Count == 0)
+            {
+                // Fall back to closest start time
+                double minDiff = double.MaxValue;
+                Paragraph bestMatch = null;
+                foreach (var p in candidates)
+                {
+                    double diff = Math.Abs(target.StartTime.TotalMilliseconds - p.StartTime.TotalMilliseconds);
+                    if (diff < minDiff)
+                    {
+                        minDiff = diff;
+                        bestMatch = p;
+                    }
+                }
+                return bestMatch;
+            }
+
+            if (overlappingCandidates.Count == 1)
+            {
+                return overlappingCandidates[0].paragraph;
+            }
+
+            // Multiple overlapping candidates - use text length to disambiguate
+            // Similar to how MergeAndSplitHelper uses character proportions
+            var targetLength = target.Text.Length;
+            Paragraph bestMatch = null;
+            double bestScore = -1;
+
+            foreach (var (p, overlap) in overlappingCandidates)
+            {
+                // Score based on overlap duration and text length similarity
+                double lengthRatio = Math.Min(targetLength, p.Text.Length) / (double)Math.Max(targetLength, p.Text.Length);
+                double score = overlap * lengthRatio;
+
+                // Bonus for sequential access (same index as last lookup)
+                if (candidates.IndexOf(p) == originalIndex)
+                {
+                    score *= 1.5;
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestMatch = p;
                 }
             }
 
