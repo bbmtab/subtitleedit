@@ -201,10 +201,10 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             }
 
             // Fuzzy match: try matching without formatting tags on both sides
-            var textWithoutTags = Utilities.RemoveTags(text);
+            var textWithoutTags = HtmlUtil.RemoveHtmlTags(text, true);
             for (int i = Math.Max(0, startIndex - 5); i < Math.Min(startIndex + 5, _originalSubtitle.Paragraphs.Count); i++)
             {
-                var paraTextWithoutTags = Utilities.RemoveTags(_originalSubtitle.Paragraphs[i].Text);
+                var paraTextWithoutTags = HtmlUtil.RemoveHtmlTags(_originalSubtitle.Paragraphs[i].Text, true);
                 if (textWithoutTags.Equals(paraTextWithoutTags, StringComparison.OrdinalIgnoreCase))
                     return i;
             }
@@ -442,17 +442,17 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 // Fall back to closest start time
                 double minDiff = double.MaxValue;
-                Paragraph bestMatch = null;
+                Paragraph fallbackMatch = null;
                 foreach (var p in candidates)
                 {
                     double diff = Math.Abs(target.StartTime.TotalMilliseconds - p.StartTime.TotalMilliseconds);
                     if (diff < minDiff)
                     {
                         minDiff = diff;
-                        bestMatch = p;
+                        fallbackMatch = p;
                     }
                 }
-                return bestMatch;
+                return fallbackMatch;
             }
 
             if (overlappingCandidates.Count == 1)
@@ -463,7 +463,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             // Multiple overlapping candidates - use text length to disambiguate
             // Similar to how MergeAndSplitHelper uses character proportions
             var targetLength = target.Text.Length;
-            Paragraph bestMatch = null;
+            Paragraph lengthBestMatch = null;
             double bestScore = -1;
 
             foreach (var (p, overlap) in overlappingCandidates)
@@ -481,11 +481,11 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 if (score > bestScore)
                 {
                     bestScore = score;
-                    bestMatch = p;
+                    lengthBestMatch = p;
                 }
             }
 
-            return bestMatch;
+            return lengthBestMatch;
         }
     }
 }
