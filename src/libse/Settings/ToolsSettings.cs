@@ -574,7 +574,7 @@ namespace Nikse.SubtitleEdit.Core.Settings
             LlmSubtransSceneThreshold = 60;
             LlmSubtransProject = true;
             LlmSubtransChat = false;
-            LlmSubtransPostProcess = true;
+            LlmSubtransPostProcess = false;
             LlmSubtransAuto = false;
             LlmSubtransSystemMessages = false;
             LlmSubtransBuildTerminologyMap = true;
