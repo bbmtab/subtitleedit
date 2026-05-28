@@ -7757,6 +7757,18 @@ namespace Nikse.SubtitleEdit.Core.Settings
                     shortcuts.MainListViewToggleMusicSymbols = subNode.InnerText;
                 }
 
+                subNode = node.SelectSingleNode("MainListViewToggleSquareBrackets");
+                if (subNode != null)
+                {
+                    shortcuts.MainListViewToggleSquareBrackets = subNode.InnerText;
+                }
+
+                subNode = node.SelectSingleNode("MainListViewToggleParentheses");
+                if (subNode != null)
+                {
+                    shortcuts.MainListViewToggleParentheses = subNode.InnerText;
+                }
+
                 subNode = node.SelectSingleNode("MainListViewAlignment");
                 if (subNode != null)
                 {
