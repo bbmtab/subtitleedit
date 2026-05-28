@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Nikse.SubtitleEdit.Core.AutoTranslate
 {
@@ -33,6 +34,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         private List<string> _sequentialCache;
         private bool _isFailed = false;
         private HashSet<int> _usedTranslationIndices; // Track used translations to prevent repeats
+        private Dictionary<int, string> _indexToTranslation; // Map original index to translation from project file
 
         public LlmSubTrans()
         {
@@ -56,6 +58,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             _sequentialCache = null;
             _isFailed = false;
             _usedTranslationIndices = new HashSet<int>();
+            _indexToTranslation = new Dictionary<int, string>();
         }
 
         public List<TranslationPair> GetSupportedSourceLanguages()
@@ -94,8 +97,15 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                 if (foundIndex >= 0)
                 {
-                    // Map original index to translation index
-                    // The llm-subtrans script preserves line count in most cases
+                    // Use project file index mapping if available (1-based index in project file)
+                    int projectIndex = foundIndex + 1; // Convert to 1-based
+                    if (_indexToTranslation != null && _indexToTranslation.TryGetValue(projectIndex, out var translation))
+                    {
+                        _currentBatchIndex = foundIndex + 1;
+                        return translation;
+                    }
+
+                    // Fallback: Map original index to translation index
                     var translationIndex = MapOriginalToTranslation(foundIndex);
 
                     if (translationIndex >= 0 && translationIndex < _sequentialCache.Count)
@@ -222,10 +232,11 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             _sequentialCache = new List<string>();
             _currentBatchIndex = 0;
+            _indexToTranslation = new Dictionary<int, string>();
 
             var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
             var sourceBaseName = !string.IsNullOrEmpty(FileName) ? Path.GetFileNameWithoutExtension(FileName) : "new_subtitle";
-            
+
             // Temporary files in temp folder, but project file will be moved to source folder
             var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
             var tempInput = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
@@ -251,7 +262,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             var baseUrl = Configuration.Settings.Tools.LlmSubtransUrl?.TrimEnd('/');
             var endpoint = Configuration.Settings.Tools.LlmSubtransEndpoint?.TrimStart('/');
-            
+
             var args = new StringBuilder();
             args.Append($"'{scriptPath}' ");
             args.Append($"'{tempInput}' ");
@@ -307,7 +318,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             {
                 FileName = "powershell.exe",
                 Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{psCommand}\"",
-                UseShellExecute = true, 
+                UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = workingDir
             };
@@ -328,22 +339,42 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     if (process.ExitCode == 0 && File.Exists(tempOutput))
                     {
                         _cachedSubtitle = new Subtitle();
-                        var linesFromFile = File.ReadAllLines(tempOutput, Encoding.UTF8).ToList();
 
-                        // Basic cleanup of LLM-induced SRT noise
-                        var cleanLines = new List<string>();
-                        bool srtStarted = false;
-                        foreach (var line in linesFromFile)
+                        // First, try to load from project file for better sync accuracy
+                        bool projectLoaded = false;
+                        if (File.Exists(tempProjectFile))
                         {
-                            if (!srtStarted && !System.Text.RegularExpressions.Regex.IsMatch(line, @"^\d+$"))
-                                continue;
-                            srtStarted = true;
-                            cleanLines.Add(line);
+                            projectLoaded = LoadTranslationsFromProjectFile(tempProjectFile);
                         }
 
-                        srt.LoadSubtitle(_cachedSubtitle, cleanLines, tempOutput);
+                        // If project file failed or incomplete, fall back to SRT
+                        if (!projectLoaded && File.Exists(tempOutput))
+                        {
+                            var linesFromFile = File.ReadAllLines(tempOutput, Encoding.UTF8).ToList();
 
-                        // Handle project file synchronization
+                            // Basic cleanup of LLM-induced SRT noise
+                            var cleanLines = new List<string>();
+                            bool srtStarted = false;
+                            foreach (var line in linesFromFile)
+                            {
+                                if (!srtStarted && !System.Text.RegularExpressions.Regex.IsMatch(line, @"^\d+$"))
+                                    continue;
+                                srtStarted = true;
+                                cleanLines.Add(line);
+                            }
+
+                            srt.LoadSubtitle(_cachedSubtitle, cleanLines, tempOutput);
+
+                            // Build sequential cache from SRT
+                            _sequentialCache?.Clear();
+                            if (_sequentialCache == null) _sequentialCache = new List<string>();
+                            foreach (var p in _cachedSubtitle.Paragraphs)
+                            {
+                                _sequentialCache.Add(p.Text);
+                            }
+                        }
+
+                        // Handle project file synchronization - move to source folder
                         if (File.Exists(tempProjectFile))
                         {
                             try
@@ -354,13 +385,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                             catch { }
                         }
 
-                        // Populate sequential cache as fallback
-                        _sequentialCache.Clear();
-                        foreach (var p in _cachedSubtitle.Paragraphs)
-                        {
-                            _sequentialCache.Add(p.Text);
-                        }
-
                         _lastSourceLanguage = sourceLanguageCode;
                         _lastTargetLanguage = targetLanguageCode;
                         _currentBatchIndex = 0;
@@ -368,7 +392,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         // Cleanup
                         try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
                         try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
-                    }                    else
+                    }
+                    else
                     {
                         Error = "Python script failed or was interrupted.";
                     }
@@ -377,6 +402,113 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             catch (Exception ex)
             {
                 Error = ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Loads translations from the llm-subtrans .subtrans project file.
+        /// Uses the index field to map translations to original subtitle indices.
+        /// </summary>
+        private bool LoadTranslationsFromProjectFile(string projectFilePath)
+        {
+            try
+            {
+                var jsonContent = File.ReadAllText(projectFilePath, Encoding.UTF8);
+                using var doc = JsonDocument.Parse(jsonContent);
+                var root = doc.RootElement;
+
+                if (!root.TryGetProperty("scenes", out var scenesArray))
+                    return false;
+
+                _cachedSubtitle = new Subtitle();
+                _sequentialCache = new List<string>();
+                _indexToTranslation = new Dictionary<int, string>();
+
+                var paragraphDict = new Dictionary<int, Paragraph>();
+
+                // Iterate through all scenes and batches
+                foreach (var scene in scenesArray.EnumerateArray())
+                {
+                    if (!scene.TryGetProperty("batches", out var batchesArray))
+                        continue;
+
+                    foreach (var batch in batchesArray.EnumerateArray())
+                    {
+                        // Try translated array first
+                        if (batch.TryGetProperty("translated", out var translatedArray))
+                        {
+                            foreach (var item in translatedArray.EnumerateArray())
+                            {
+                                if (item.TryGetProperty("index", out var indexProp) &&
+                                    item.TryGetProperty("content", out var contentProp) &&
+                                    !string.IsNullOrWhiteSpace(contentProp.GetString()))
+                                {
+                                    int idx = indexProp.GetInt32();
+                                    var content = contentProp.GetString();
+
+                                    // Get timing from original subtitle
+                                    var original = _originalSubtitle.GetParagraphOrDefault(idx - 1); // index is 1-based
+                                    if (original != null)
+                                    {
+                                        var newPara = new Paragraph(
+                                            HtmlUtil.RemoveHtmlTags(content, true),
+                                            original.StartTime.TotalMilliseconds,
+                                            original.EndTime.TotalMilliseconds
+                                        );
+                                        paragraphDict[idx] = newPara;
+                                        _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(content, true);
+                                    }
+                                }
+                            }
+                        }
+
+                        // Fill gaps from originals array (has translation field as fallback)
+                        if (batch.TryGetProperty("originals", out var originalsArray))
+                        {
+                            foreach (var item in originalsArray.EnumerateArray())
+                            {
+                                if (item.TryGetProperty("index", out var indexProp) &&
+                                    item.TryGetProperty("translation", out var translationProp))
+                                {
+                                    int idx = indexProp.GetInt32();
+                                    var translation = translationProp.GetString();
+
+                                    // Only use if we don't have it from translated array
+                                    if (!_indexToTranslation.ContainsKey(idx) && !string.IsNullOrWhiteSpace(translation))
+                                    {
+                                        var original = _originalSubtitle.GetParagraphOrDefault(idx - 1);
+                                        if (original != null && item.TryGetProperty("start", out var startProp) && item.TryGetProperty("end", out var endProp))
+                                        {
+                                            var newPara = new Paragraph(
+                                                HtmlUtil.RemoveHtmlTags(translation, true),
+                                                startProp.GetDouble(),
+                                                endProp.GetDouble()
+                                            );
+                                            paragraphDict[idx] = newPara;
+                                            _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(translation, true);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Build subtitle from dictionary (preserves order)
+                var sortedIndices = paragraphDict.Keys.OrderBy(k => k).ToList();
+                foreach (var idx in sortedIndices)
+                {
+                    _cachedSubtitle.Paragraphs.Add(paragraphDict[idx]);
+                    _sequentialCache.Add(paragraphDict[idx].Text);
+                }
+
+                _cachedSubtitle.Renumber();
+                return _sequentialCache.Count > 0;
+            }
+            catch (Exception ex)
+            {
+                SeLogger.Error(ex, "Failed to load project file: " + projectFilePath);
+                return false;
             }
         }
 
