@@ -312,7 +312,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (workingDir != null && workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase)) workingDir = Path.GetDirectoryName(workingDir);
 
             // Use powershell with Tee-Object to show live output AND log to file
-            var psCommand = $"& {{ & '{pythonPath}' {args} 2>&1 | Tee-Object -FilePath '{logFile}' }}";
+            // On error, keep window open so user can see the error message
+            var psCommand = $"& {{ try {{ & '{pythonPath}' {args} 2>&1 | Tee-Object -FilePath '{logFile}' }} catch {{ Write-Error $_; Read-Host 'Press Enter to close' }} if ($LASTEXITCODE -ne 0) {{ Read-Host 'Script failed - Press Enter to close' }} }}";
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
@@ -394,7 +395,16 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     }
                     else
                     {
-                        Error = "Python script failed or was interrupted.";
+                        // Read log file for detailed error message
+                        if (File.Exists(logFile))
+                        {
+                            var logContent = File.ReadAllText(logFile);
+                            Error = $"Python script failed (exit code {process.ExitCode}). Check log: {logFile}\n\n{logContent}";
+                        }
+                        else
+                        {
+                            Error = $"Python script failed (exit code {process.ExitCode}). Log file not created: {logFile}";
+                        }
                     }
                 }
             }
