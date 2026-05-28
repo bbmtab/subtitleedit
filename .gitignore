@@ -433,6 +433,8 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /.claude
+/.claude-auto-hk.ahk
+/.claude-watch.ps1
 /installer/flatpak
 .gemini_memory.md
 CLAUDE.md
