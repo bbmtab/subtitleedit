@@ -2274,8 +2274,8 @@ namespace Nikse.SubtitleEdit.Forms.Options
                         {
                             File.WriteAllText(localSettingsFile, "Force local settings");
                         }
-                        // Save current settings to the new local path as well
-                        Configuration.Settings.Save(Path.Combine(Configuration.BaseDirectory, Configuration.SettingsFileName));
+                        // Save current settings to the new local path (use "Settings.xml" directly, not SettingsFileName which may point to AppData)
+                        Configuration.Settings.Save(Path.Combine(Configuration.BaseDirectory, "Settings.xml"));
                     }
                     else
                     {
