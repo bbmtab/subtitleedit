@@ -246,10 +246,11 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
 
+            var srt = new SubRip();
+
             // Write temp input only if original file not available
             if (!tempInput.Equals(FileName, StringComparison.OrdinalIgnoreCase))
             {
-                var srt = new SubRip();
                 File.WriteAllText(tempInput, srt.ToText(_originalSubtitle, string.Empty), new UTF8Encoding(false));
             }
 
