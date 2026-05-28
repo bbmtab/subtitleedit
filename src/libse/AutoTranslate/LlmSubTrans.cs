@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.Json;
 
 namespace Nikse.SubtitleEdit.Core.AutoTranslate
 {
@@ -414,11 +413,6 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             try
             {
                 var jsonContent = File.ReadAllText(projectFilePath, Encoding.UTF8);
-                using var doc = JsonDocument.Parse(jsonContent);
-                var root = doc.RootElement;
-
-                if (!root.TryGetProperty("scenes", out var scenesArray))
-                    return false;
 
                 _cachedSubtitle = new Subtitle();
                 _sequentialCache = new List<string>();
@@ -426,67 +420,63 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                 var paragraphDict = new Dictionary<int, Paragraph>();
 
-                // Iterate through all scenes and batches
-                foreach (var scene in scenesArray.EnumerateArray())
+                // Read scenes array
+                var scenes = Json.ReadArray(jsonContent, "scenes");
+                foreach (var sceneJson in scenes)
                 {
-                    if (!scene.TryGetProperty("batches", out var batchesArray))
-                        continue;
-
-                    foreach (var batch in batchesArray.EnumerateArray())
+                    // Read batches from scene
+                    var batches = Json.ReadArray(sceneJson, "batches");
+                    foreach (var batchJson in batches)
                     {
                         // Try translated array first
-                        if (batch.TryGetProperty("translated", out var translatedArray))
+                        var translated = Json.ReadArray(batchJson, "translated");
+                        foreach (var itemJson in translated)
                         {
-                            foreach (var item in translatedArray.EnumerateArray())
-                            {
-                                if (item.TryGetProperty("index", out var indexProp) &&
-                                    item.TryGetProperty("content", out var contentProp) &&
-                                    !string.IsNullOrWhiteSpace(contentProp.GetString()))
-                                {
-                                    int idx = indexProp.GetInt32();
-                                    var content = contentProp.GetString();
+                            var index = Json.ReadTag(itemJson, "index");
+                            var content = Json.ReadTag(itemJson, "content");
 
-                                    // Get timing from original subtitle
-                                    var original = _originalSubtitle.GetParagraphOrDefault(idx - 1); // index is 1-based
-                                    if (original != null)
-                                    {
-                                        var newPara = new Paragraph(
-                                            HtmlUtil.RemoveHtmlTags(content, true),
-                                            original.StartTime.TotalMilliseconds,
-                                            original.EndTime.TotalMilliseconds
-                                        );
-                                        paragraphDict[idx] = newPara;
-                                        _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(content, true);
-                                    }
+                            if (int.TryParse(index, out var idx) && !string.IsNullOrWhiteSpace(content))
+                            {
+                                // Get timing from original subtitle (index is 1-based)
+                                var original = _originalSubtitle.GetParagraphOrDefault(idx - 1);
+                                if (original != null)
+                                {
+                                    var newPara = new Paragraph(
+                                        HtmlUtil.RemoveHtmlTags(content, true),
+                                        original.StartTime.TotalMilliseconds,
+                                        original.EndTime.TotalMilliseconds
+                                    );
+                                    paragraphDict[idx] = newPara;
+                                    _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(content, true);
                                 }
                             }
                         }
 
                         // Fill gaps from originals array (has translation field as fallback)
-                        if (batch.TryGetProperty("originals", out var originalsArray))
+                        var originals = Json.ReadArray(batchJson, "originals");
+                        foreach (var itemJson in originals)
                         {
-                            foreach (var item in originalsArray.EnumerateArray())
-                            {
-                                if (item.TryGetProperty("index", out var indexProp) &&
-                                    item.TryGetProperty("translation", out var translationProp))
-                                {
-                                    int idx = indexProp.GetInt32();
-                                    var translation = translationProp.GetString();
+                            var index = Json.ReadTag(itemJson, "index");
+                            var translation = Json.ReadTag(itemJson, "translation");
+                            var start = Json.ReadTag(itemJson, "start");
+                            var end = Json.ReadTag(itemJson, "end");
 
-                                    // Only use if we don't have it from translated array
-                                    if (!_indexToTranslation.ContainsKey(idx) && !string.IsNullOrWhiteSpace(translation))
+                            if (int.TryParse(index, out var idx) && !string.IsNullOrWhiteSpace(translation))
+                            {
+                                // Only use if we don't have it from translated array
+                                if (!_indexToTranslation.ContainsKey(idx))
+                                {
+                                    double startMs = 0, endMs = 0;
+                                    if (double.TryParse(start, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out startMs) &&
+                                        double.TryParse(end, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out endMs))
                                     {
-                                        var original = _originalSubtitle.GetParagraphOrDefault(idx - 1);
-                                        if (original != null && item.TryGetProperty("start", out var startProp) && item.TryGetProperty("end", out var endProp))
-                                        {
-                                            var newPara = new Paragraph(
-                                                HtmlUtil.RemoveHtmlTags(translation, true),
-                                                startProp.GetDouble(),
-                                                endProp.GetDouble()
-                                            );
-                                            paragraphDict[idx] = newPara;
-                                            _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(translation, true);
-                                        }
+                                        var newPara = new Paragraph(
+                                            HtmlUtil.RemoveHtmlTags(translation, true),
+                                            startMs,
+                                            endMs
+                                        );
+                                        paragraphDict[idx] = newPara;
+                                        _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(translation, true);
                                     }
                                 }
                             }
