@@ -262,43 +262,12 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var baseUrl = Configuration.Settings.Tools.LlmSubtransUrl?.TrimEnd('/');
             var endpoint = Configuration.Settings.Tools.LlmSubtransEndpoint?.TrimStart('/');
 
-            var args = new StringBuilder();
-            args.Append($"'{scriptPath}' ");
-            args.Append($"'{tempInput}' ");
-            if (Configuration.Settings.Tools.LlmSubtransProject) args.Append("--project ");
-            args.Append($"-l '{targetLanguageCode}' ");
-            args.Append($"-o '{tempOutput}' ");
-            if (!string.IsNullOrEmpty(baseUrl)) args.Append($"-s '{baseUrl}' ");
-            if (!string.IsNullOrEmpty(endpoint)) args.Append($"-e '/{endpoint}' ");
-            args.Append($"-k '{Configuration.Settings.Tools.LlmSubtransApiKey}' ");
-            args.Append($"-m '{Configuration.Settings.Tools.LlmSubtransModel}' ");
-            args.Append($"--temperature {Configuration.Settings.Tools.LlmSubtransTemperature.ToString(System.Globalization.CultureInfo.InvariantCulture)} ");
-            args.Append($"--ratelimit {Configuration.Settings.Tools.LlmSubtransRateLimit} ");
-            args.Append($"--minbatchsize {Configuration.Settings.Tools.LlmSubtransMinBatchSize} ");
-            args.Append($"--maxbatchsize {Configuration.Settings.Tools.LlmSubtransMaxBatchSize} ");
-            args.Append($"--maxretries {Configuration.Settings.Tools.LlmSubtransMaxRetries} ");
-            args.Append($"--backofftime {Configuration.Settings.Tools.LlmSubtransBackoffTime} ");
-            args.Append($"--scenethreshold {Configuration.Settings.Tools.LlmSubtransSceneThreshold} ");
-            args.Append($"--batchthreshold {Configuration.Settings.Tools.LlmSubtransBatchThreshold} ");
-            args.Append($"--maxsummaries {Configuration.Settings.Tools.LlmSubtransMaxSummaries} ");
-            if (Configuration.Settings.Tools.LlmSubtransChat || (endpoint != null && endpoint.Contains("chat"))) args.Append("--chat ");
-            if (Configuration.Settings.Tools.LlmSubtransPostProcess) args.Append("--postprocess ");
-            if (Configuration.Settings.Tools.LlmSubtransSystemMessages) args.Append("--systemmessages ");
-            if (Configuration.Settings.Tools.LlmSubtransAuto) args.Append("--auto ");
-            if (Configuration.Settings.Tools.LlmSubtransIncludeOriginal) args.Append("--includeoriginal ");
-            if (Configuration.Settings.Tools.LlmSubtransAddRtlMarkers) args.Append("--addrtlmarkers ");
-            if (Configuration.Settings.Tools.LlmSubtransBuildTerminologyMap) args.Append("--build-terminology-map ");
-
-            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile))
-                args.Append($"--instructionfile '{Configuration.Settings.Tools.LlmSubtransInstructionFile}' ");
-
             var namesFile = Configuration.Settings.Tools.LlmSubtransNamesFile;
             if (string.IsNullOrEmpty(namesFile) && !string.IsNullOrEmpty(subtitleFolder))
             {
                 var defaultNames = Path.Combine(subtitleFolder, "names.txt");
                 if (File.Exists(defaultNames)) namesFile = defaultNames;
             }
-            if (!string.IsNullOrEmpty(namesFile)) args.Append($"--names '{namesFile}' ");
 
             var termFile = Configuration.Settings.Tools.LlmSubtransTerminologyFile;
             if (string.IsNullOrEmpty(termFile) && !string.IsNullOrEmpty(subtitleFolder))
@@ -306,14 +275,45 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                 var defaultTerm = Path.Combine(subtitleFolder, "term.txt");
                 if (File.Exists(defaultTerm)) termFile = defaultTerm;
             }
-            if (!string.IsNullOrEmpty(termFile)) args.Append($"--terminology-file '{termFile}' ");
 
             var workingDir = Path.GetDirectoryName(scriptPath);
             if (workingDir != null && workingDir.EndsWith("scripts", StringComparison.OrdinalIgnoreCase)) workingDir = Path.GetDirectoryName(workingDir);
 
+            // Helper to escape paths for PowerShell (single quotes need to be doubled)
+            string EscapeForPowerShell(string path) => path?.Replace("'", "''");
+
             // Use powershell with Tee-Object to show live output AND log to file
             // On error, keep window open so user can see the error message
-            var psCommand = $"& {{ try {{ & '{pythonPath}' {args} 2>&1 | Tee-Object -FilePath '{logFile}' }} catch {{ Write-Error $_; Read-Host 'Press Enter to close' }} if ($LASTEXITCODE -ne 0) {{ Read-Host 'Script failed - Press Enter to close' }} }}";
+            var psCommand = $"& {{ try {{ & '{pythonPath}' '{EscapeForPowerShell(scriptPath)}' '{EscapeForPowerShell(tempInput)}'";
+            if (Configuration.Settings.Tools.LlmSubtransProject) psCommand = psCommand.Replace("'", "' '--project '", 1) + "'";
+            else psCommand += "'";
+            psCommand += $" -l '{targetLanguageCode}'";
+            psCommand += $" -o '{EscapeForPowerShell(tempOutput)}'";
+            if (!string.IsNullOrEmpty(baseUrl)) psCommand += $" -s '{EscapeForPowerShell(baseUrl)}'";
+            if (!string.IsNullOrEmpty(endpoint)) psCommand += $" -e '{endpoint}'";
+            psCommand += $" -k '{Configuration.Settings.Tools.LlmSubtransApiKey}'";
+            psCommand += $" -m '{Configuration.Settings.Tools.LlmSubtransModel}'";
+            psCommand += $" --temperature {Configuration.Settings.Tools.LlmSubtransTemperature.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+            psCommand += $" --ratelimit {Configuration.Settings.Tools.LlmSubtransRateLimit}";
+            psCommand += $" --minbatchsize {Configuration.Settings.Tools.LlmSubtransMinBatchSize}";
+            psCommand += $" --maxbatchsize {Configuration.Settings.Tools.LlmSubtransMaxBatchSize}";
+            psCommand += $" --maxretries {Configuration.Settings.Tools.LlmSubtransMaxRetries}";
+            psCommand += $" --backofftime {Configuration.Settings.Tools.LlmSubtransBackoffTime}";
+            psCommand += $" --scenethreshold {Configuration.Settings.Tools.LlmSubtransSceneThreshold}";
+            psCommand += $" --batchthreshold {Configuration.Settings.Tools.LlmSubtransBatchThreshold}";
+            psCommand += $" --maxsummaries {Configuration.Settings.Tools.LlmSubtransMaxSummaries}";
+            if (Configuration.Settings.Tools.LlmSubtransChat || (endpoint != null && endpoint.Contains("chat"))) psCommand += " --chat";
+            if (Configuration.Settings.Tools.LlmSubtransPostProcess) psCommand += " --postprocess";
+            if (Configuration.Settings.Tools.LlmSubtransSystemMessages) psCommand += " --systemmessages";
+            if (Configuration.Settings.Tools.LlmSubtransAuto) psCommand += " --auto";
+            if (Configuration.Settings.Tools.LlmSubtransIncludeOriginal) psCommand += " --includeoriginal";
+            if (Configuration.Settings.Tools.LlmSubtransAddRtlMarkers) psCommand += " --addrtlmarkers";
+            if (Configuration.Settings.Tools.LlmSubtransBuildTerminologyMap) psCommand += " --build-terminology-map";
+            if (!string.IsNullOrEmpty(Configuration.Settings.Tools.LlmSubtransInstructionFile)) psCommand += $" --instructionfile '{EscapeForPowerShell(Configuration.Settings.Tools.LlmSubtransInstructionFile)}'";
+            if (!string.IsNullOrEmpty(namesFile)) psCommand += $" --names '{EscapeForPowerShell(namesFile)}'";
+            if (!string.IsNullOrEmpty(termFile)) psCommand += $" --terminology-file '{EscapeForPowerShell(termFile)}'";
+
+            psCommand += $" 2>&1 | Tee-Object -FilePath '{EscapeForPowerShell(logFile)}' }} catch {{ Write-Error $_; Read-Host 'Press Enter to close' }} if ($LASTEXITCODE -ne 0) {{ Read-Host 'Script failed - Press Enter to close' }} }}";
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
