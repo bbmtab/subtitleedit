@@ -236,9 +236,9 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
             var sourceBaseName = !string.IsNullOrEmpty(FileName) ? Path.GetFileNameWithoutExtension(FileName) : "new_subtitle";
 
-            // Temporary files in temp folder, but project file will be moved to source folder
+            // Use original file directly if FileName is available, otherwise create temp input
             var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
-            var tempInput = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
+            var tempInput = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? FileName : Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
             var tempOutput = Path.Combine(Path.GetTempPath(), $"se_llm_out_{uniqueId}.srt");
             var tempProjectFile = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.subtrans");
             var finalProjectFile = Path.Combine(subtitleFolder, $"{sourceBaseName}.subtrans");
@@ -246,8 +246,12 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             if (File.Exists(tempOutput)) File.Delete(tempOutput);
 
-            var srt = new SubRip();
-            File.WriteAllText(tempInput, srt.ToText(_originalSubtitle, string.Empty), new UTF8Encoding(false));
+            // Write temp input only if original file not available
+            if (!tempInput.Equals(FileName, StringComparison.OrdinalIgnoreCase))
+            {
+                var srt = new SubRip();
+                File.WriteAllText(tempInput, srt.ToText(_originalSubtitle, string.Empty), new UTF8Encoding(false));
+            }
 
             var pythonPath = Configuration.Settings.Tools.LlmSubtransPythonPath;
             var scriptPath = Configuration.Settings.Tools.LlmSubtransScriptPath;
@@ -388,8 +392,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         _lastTargetLanguage = targetLanguageCode;
                         _currentBatchIndex = 0;
 
-                        // Cleanup
-                        try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
+                        // Cleanup temp files (but not the original input file)
+                        try { if (File.Exists(tempInput) && !tempInput.Equals(FileName, StringComparison.OrdinalIgnoreCase)) File.Delete(tempInput); } catch { }
                         try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
                     }
                     else
@@ -416,6 +420,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
         /// <summary>
         /// Loads translations from the llm-subtrans .subtrans project file.
         /// Uses the index field to map translations to original subtitle indices.
+        /// Prioritizes 'originals' array which has accurate timing (start/end).
         /// </summary>
         private bool LoadTranslationsFromProjectFile(string projectFilePath)
         {
@@ -437,31 +442,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                     var batches = Json.ReadArray(sceneJson, "batches");
                     foreach (var batchJson in batches)
                     {
-                        // Try translated array first
-                        var translated = Json.ReadArray(batchJson, "translated");
-                        foreach (var itemJson in translated)
-                        {
-                            var index = Json.ReadTag(itemJson, "index");
-                            var content = Json.ReadTag(itemJson, "content");
-
-                            if (int.TryParse(index, out var idx) && !string.IsNullOrWhiteSpace(content))
-                            {
-                                // Get timing from original subtitle (index is 1-based)
-                                var original = _originalSubtitle.GetParagraphOrDefault(idx - 1);
-                                if (original != null)
-                                {
-                                    var newPara = new Paragraph(
-                                        HtmlUtil.RemoveHtmlTags(content, true),
-                                        original.StartTime.TotalMilliseconds,
-                                        original.EndTime.TotalMilliseconds
-                                    );
-                                    paragraphDict[idx] = newPara;
-                                    _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(content, true);
-                                }
-                            }
-                        }
-
-                        // Fill gaps from originals array (has translation field as fallback)
+                        // FIRST: Read from 'originals' array - has accurate timing (start/end)
                         var originals = Json.ReadArray(batchJson, "originals");
                         foreach (var itemJson in originals)
                         {
@@ -472,20 +453,44 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
                             if (int.TryParse(index, out var idx) && !string.IsNullOrWhiteSpace(translation))
                             {
-                                // Only use if we don't have it from translated array
+                                double startMs = 0, endMs = 0;
+                                if (double.TryParse(start, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out startMs) &&
+                                    double.TryParse(end, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out endMs))
+                                {
+                                    var newPara = new Paragraph(
+                                        HtmlUtil.RemoveHtmlTags(translation, true),
+                                        startMs,
+                                        endMs
+                                    );
+                                    paragraphDict[idx] = newPara;
+                                    _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(translation, true);
+                                }
+                            }
+                        }
+
+                        // SECOND: Fill gaps from 'translated' array (uses original timing - less accurate)
+                        var translated = Json.ReadArray(batchJson, "translated");
+                        foreach (var itemJson in translated)
+                        {
+                            var index = Json.ReadTag(itemJson, "index");
+                            var content = Json.ReadTag(itemJson, "content");
+
+                            if (int.TryParse(index, out var idx) && !string.IsNullOrWhiteSpace(content))
+                            {
+                                // Only use if we don't have it from originals array (which has better timing)
                                 if (!_indexToTranslation.ContainsKey(idx))
                                 {
-                                    double startMs = 0, endMs = 0;
-                                    if (double.TryParse(start, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out startMs) &&
-                                        double.TryParse(end, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out endMs))
+                                    // Get timing from original subtitle (index is 1-based)
+                                    var original = _originalSubtitle.GetParagraphOrDefault(idx - 1);
+                                    if (original != null)
                                     {
                                         var newPara = new Paragraph(
-                                            HtmlUtil.RemoveHtmlTags(translation, true),
-                                            startMs,
-                                            endMs
+                                            HtmlUtil.RemoveHtmlTags(content, true),
+                                            original.StartTime.TotalMilliseconds,
+                                            original.EndTime.TotalMilliseconds
                                         );
                                         paragraphDict[idx] = newPara;
-                                        _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(translation, true);
+                                        _indexToTranslation[idx] = HtmlUtil.RemoveHtmlTags(content, true);
                                     }
                                 }
                             }
