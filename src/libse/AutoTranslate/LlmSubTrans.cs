@@ -284,9 +284,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
 
             // Use powershell with Tee-Object to show live output AND log to file
             // On error, keep window open so user can see the error message
-            var psCommand = $"& {{ try {{ & '{pythonPath}' '{EscapeForPowerShell(scriptPath)}' '{EscapeForPowerShell(tempInput)}'";
-            if (Configuration.Settings.Tools.LlmSubtransProject) psCommand = psCommand.Replace("'", "' '--project '", 1) + "'";
-            else psCommand += "'";
+            var projectArg = Configuration.Settings.Tools.LlmSubtransProject ? " --project" : "";
+            var psCommand = $"& {{ try {{ & '{pythonPath}' '{EscapeForPowerShell(scriptPath)}' '{EscapeForPowerShell(tempInput)}'{projectArg}";
             psCommand += $" -l '{targetLanguageCode}'";
             psCommand += $" -o '{EscapeForPowerShell(tempOutput)}'";
             if (!string.IsNullOrEmpty(baseUrl)) psCommand += $" -s '{EscapeForPowerShell(baseUrl)}'";
