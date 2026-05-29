@@ -317,7 +317,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             if (!string.IsNullOrEmpty(namesFile)) psCommand += $" --names '{EscapeForPowerShell(namesFile)}'";
             if (!string.IsNullOrEmpty(termFile)) psCommand += $" --terminology-file '{EscapeForPowerShell(termFile)}'";
 
-            psCommand += $" 2>&1 | Tee-Object -FilePath '{EscapeForPowerShell(logFile)}' }} catch {{ Write-Error $_; Read-Host 'Press Enter to close' }} if ($LASTEXITCODE -ne 0) {{ Read-Host 'Script failed - Press Enter to close' }} }}";
+            psCommand += $" | Tee-Object -FilePath '{EscapeForPowerShell(logFile)}' }} catch {{ Write-Error $_; Read-Host 'Press Enter to close' }} if ($LASTEXITCODE -ne 0) {{ Read-Host 'Script failed - Press Enter to close' }} }}";
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
