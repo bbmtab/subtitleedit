@@ -1,4 +1,4 @@
-﻿using Nikse.SubtitleEdit.Core.Common;
+using Nikse.SubtitleEdit.Core.Common;
 using Nikse.SubtitleEdit.Core.Translate;
 using Nikse.SubtitleEdit.Logic;
 using System;
@@ -17,7 +17,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private bool _abort;
         public Subtitle TranslatedSubtitle { get; private set; }
 
-        public TranslateViaCopyPaste(Subtitle sub)
+        public TranslateViaCopyPaste(Subtitle sub, Subtitle subOriginal = null, List<int> selectedIndices = null)
         {
             UiUtil.PreInitialize(this);
             InitializeComponent();
@@ -32,17 +32,46 @@ namespace Nikse.SubtitleEdit.Forms.Translate
             checkBoxAutoCopyToClipboard.Text = LanguageSettings.Current.GoogleTranslate.AutoCopyToClipboard;
             labelLineSeparator.Text = LanguageSettings.Current.GoogleTranslate.AutoCopyLineSeparator;
 
-            _subtitle = new Subtitle(sub);
-            _subtitleOriginal = new Subtitle(sub);
-            foreach (var p in _subtitle.Paragraphs)
+            _subtitle = new Subtitle(sub, false);
+            if (subOriginal != null)
             {
-                p.Text = string.Empty;
+                _subtitleOriginal = new Subtitle(subOriginal, false);
+            }
+            else
+            {
+                _subtitleOriginal = new Subtitle(sub, false);
+                foreach (var p in _subtitle.Paragraphs)
+                {
+                    p.Text = string.Empty;
+                }
             }
 
             GeneratePreview();
             RestoreSettings();
 
-            if (listViewTranslate.Items.Count > 0)
+            if (selectedIndices != null && selectedIndices.Count > 0)
+            {
+                listViewTranslate.BeginUpdate();
+                foreach (ListViewItem item in listViewTranslate.Items)
+                {
+                    item.Selected = false;
+                }
+                foreach (int index in selectedIndices)
+                {
+                    if (index >= 0 && index < listViewTranslate.Items.Count)
+                    {
+                        listViewTranslate.Items[index].Selected = true;
+                    }
+                }
+                listViewTranslate.EndUpdate();
+
+                if (listViewTranslate.SelectedItems.Count > 0)
+                {
+                    listViewTranslate.SelectedItems[0].Focused = true;
+                    listViewTranslate.EnsureVisible(listViewTranslate.SelectedItems[0].Index);
+                }
+            }
+            else if (listViewTranslate.Items.Count > 0)
             {
                 listViewTranslate.Items[0].Selected = true;
                 listViewTranslate.Items[0].Focused = true;
@@ -203,7 +232,7 @@ namespace Nikse.SubtitleEdit.Forms.Translate
         private void buttonOk_Click(object sender, EventArgs e)
         {
             SaveSettings();
-            TranslatedSubtitle = new Subtitle(_subtitle);
+            TranslatedSubtitle = new Subtitle(_subtitle, false);
             DialogResult = DialogResult.OK;
         }
 
