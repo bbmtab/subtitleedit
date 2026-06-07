@@ -221,6 +221,39 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             return -1;
         }
 
+        private bool IsSubset(Subtitle originalSubtitle, string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+                return false;
+
+            try
+            {
+                var fullSubtitle = new Subtitle();
+                fullSubtitle.LoadSubtitle(fileName, out _, null);
+
+                // If counts are different, it's definitely a subset or different file
+                if (originalSubtitle.Paragraphs.Count != fullSubtitle.Paragraphs.Count)
+                    return true;
+
+                // If any text or times differ, treat as subset
+                for (int i = 0; i < originalSubtitle.Paragraphs.Count; i++)
+                {
+                    if (originalSubtitle.Paragraphs[i].Text != fullSubtitle.Paragraphs[i].Text ||
+                        originalSubtitle.Paragraphs[i].StartTime.TotalMilliseconds != fullSubtitle.Paragraphs[i].StartTime.TotalMilliseconds)
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                // On any error, assume it's safer to treat as a subset/different
+                return true;
+            }
+
+            return false;
+        }
+
         private async Task TranslateWholeSubtitle(string sourceLanguageCode, string targetLanguageCode, CancellationToken cancellationToken)
         {
             if (_originalSubtitle == null)
@@ -233,12 +266,14 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
             _currentBatchIndex = 0;
             _indexToTranslation = new Dictionary<int, string>();
 
+            var isSubset = IsSubset(_originalSubtitle, FileName);
+
             var subtitleFolder = !string.IsNullOrEmpty(FileName) ? Path.GetDirectoryName(FileName) : Path.GetTempPath();
             var sourceBaseName = !string.IsNullOrEmpty(FileName) ? Path.GetFileNameWithoutExtension(FileName) : "new_subtitle";
 
-            // Use original file directly if FileName is available, otherwise create temp input
+            // Use original file directly if FileName is available and NOT a subset, otherwise create temp input
             var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
-            var tempInput = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? FileName : Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
+            var tempInput = !isSubset && !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? FileName : Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.srt");
             var tempOutput = Path.Combine(Path.GetTempPath(), $"se_llm_out_{uniqueId}.srt");
             var tempProjectFile = Path.Combine(Path.GetTempPath(), $"se_llm_in_{uniqueId}.subtrans");
             var finalProjectFile = Path.Combine(subtitleFolder, $"{sourceBaseName}.subtrans");
@@ -378,8 +413,8 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                             }
                         }
 
-                        // Handle project file synchronization - move to source folder
-                        if (File.Exists(tempProjectFile))
+                        // Handle project file synchronization - move to source folder (only if NOT a subset to avoid overwriting full project file)
+                        if (!isSubset && File.Exists(tempProjectFile))
                         {
                             try
                             {
@@ -396,6 +431,7 @@ namespace Nikse.SubtitleEdit.Core.AutoTranslate
                         // Cleanup temp files (but not the original input file)
                         try { if (File.Exists(tempInput) && !tempInput.Equals(FileName, StringComparison.OrdinalIgnoreCase)) File.Delete(tempInput); } catch { }
                         try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
+                        try { if (isSubset && File.Exists(tempProjectFile)) File.Delete(tempProjectFile); } catch { }
                     }
                     else
                     {
