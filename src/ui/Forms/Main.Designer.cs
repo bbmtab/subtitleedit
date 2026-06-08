@@ -355,8 +355,8 @@ namespace Nikse.SubtitleEdit.Forms
             this.showSelectedLinesEarlierlaterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemTranslateSelected = new System.Windows.Forms.ToolStripMenuItem();
             this.genericTranslateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.translateSelectedViaCopyPasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.llmSubtransCopyPasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemUnbreakLines = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemAutoBreakLines = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEvenlyDistributeLines = new System.Windows.Forms.ToolStripMenuItem();
@@ -3276,8 +3276,8 @@ namespace Nikse.SubtitleEdit.Forms
             // 
             this.toolStripMenuItemTranslateSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.genericTranslateToolStripMenuItem,
-            this.translateSelectedViaCopyPasteToolStripMenuItem,
-            this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem});
+            this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem,
+            this.llmSubtransCopyPasteToolStripMenuItem});
             this.toolStripMenuItemTranslateSelected.Name = "toolStripMenuItemTranslateSelected";
             this.toolStripMenuItemTranslateSelected.Size = new System.Drawing.Size(275, 22);
             this.toolStripMenuItemTranslateSelected.Text = "Translate selected lines via...";
@@ -3289,19 +3289,19 @@ namespace Nikse.SubtitleEdit.Forms
             this.genericTranslateToolStripMenuItem.Text = "translate...";
             this.genericTranslateToolStripMenuItem.Click += new System.EventHandler(this.TranslateSelectedLinesToolStripMenuItemClick);
             // 
-            // translateSelectedViaCopyPasteToolStripMenuItem
-            // 
-            this.translateSelectedViaCopyPasteToolStripMenuItem.Name = "translateSelectedViaCopyPasteToolStripMenuItem";
-            this.translateSelectedViaCopyPasteToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
-            this.translateSelectedViaCopyPasteToolStripMenuItem.Text = "via copy-paste...";
-            this.translateSelectedViaCopyPasteToolStripMenuItem.Click += new System.EventHandler(this.TranslateSelectedLinesViaCopyPasteToolStripMenuItemClick);
-            // 
             // translateSelectedViaCopyPasteInPlaceToolStripMenuItem
             // 
             this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem.Name = "translateSelectedViaCopyPasteInPlaceToolStripMenuItem";
             this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem.Text = "via copy-paste (directly replace)...";
             this.translateSelectedViaCopyPasteInPlaceToolStripMenuItem.Click += new System.EventHandler(this.TranslateSelectedLinesViaCopyPasteInPlaceToolStripMenuItemClick);
+            // 
+            // llmSubtransCopyPasteToolStripMenuItem
+            // 
+            this.llmSubtransCopyPasteToolStripMenuItem.Name = "llmSubtransCopyPasteToolStripMenuItem";
+            this.llmSubtransCopyPasteToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.llmSubtransCopyPasteToolStripMenuItem.Text = "LLMsubtrans Copy Paste";
+            this.llmSubtransCopyPasteToolStripMenuItem.Click += new System.EventHandler(this.LlmSubtransCopyPasteToolStripMenuItemClick);
             // 
             // toolStripMenuItemUnbreakLines
             // 
@@ -6558,8 +6558,8 @@ namespace Nikse.SubtitleEdit.Forms
         private System.Windows.Forms.ToolStripMenuItem fixCommonErrorsInSelectedLinesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemTranslateSelected;
         private System.Windows.Forms.ToolStripMenuItem genericTranslateToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem translateSelectedViaCopyPasteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem translateSelectedViaCopyPasteInPlaceToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem llmSubtransCopyPasteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemAssaTools;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparatorAssa;
         private System.Windows.Forms.ToolStripMenuItem applyCustomStylesToolStripMenuItem;
